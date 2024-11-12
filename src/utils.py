@@ -8,6 +8,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from urllib.parse import unquote
+import json
 
 
 import os
@@ -133,3 +134,9 @@ def get_path_links_coordinates(browser, articles, cache):
         path_links_coords.extend(links_coords)
 
     return path_links_coords
+
+
+def read_llm_paths(path: str) -> dict:
+    with open(path, "r") as f:
+        responses = json.load(f)
+    return responses

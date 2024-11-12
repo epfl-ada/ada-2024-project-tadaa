@@ -24,7 +24,7 @@ def llm_paths(sources, targets, links):
     print(sources[0])
     responses = {}
     for source, target in zip(sources, targets):
-        for i in range(10):
+        for i in range(100):
 
             new_source = source
             print(source)
@@ -33,7 +33,6 @@ def llm_paths(sources, targets, links):
             path.append(new_source)
             while new_source != target:
                 torch.cuda.empty_cache()
-
                 count += 1
                 if count > 50:
                     break
@@ -71,6 +70,7 @@ def llm_paths(sources, targets, links):
                 print("response word", response_word)
                 # print("links to choose from", links_to_choose_from)
                 if response_word not in links_to_choose_from:
+                    torch.cuda.empty_cache()
                     # print(response_word)
                     new_messages.append({"role": "assistant", "content": response})
                     new_prompt = "You chose a word that is not in the list of words to chose from. Please choose a word from " \
