@@ -8,12 +8,12 @@ Our project explores principles for thoughtful choices, using insights from the 
 
 ## Research questions
  - Does people lazyness affect their performance ? Is there a noticeable difference in the page position of clicked links between successful and unsuccessful players? Do people click more on subjects they already know more about?
- - Will a crowd of players do better than the same players indicidually ? In other words, does Condorcet's jury theorem apply ?
+ - Will a crowd of players do better than the same players indicidually ? In other words, does Condorcet's jury theorem apply ?  If it applies, what are the recurring patterns for the cases in which the crowd fails to beat the individuals ?
  - 
  - 
  - 
 
-## Aditional data
+## Additional data
  - 
 
 ## Project plans & Methods
@@ -22,8 +22,16 @@ Our project explores principles for thoughtful choices, using insights from the 
 
 ### Task 2:
 
+### Task 2:
+
+
 
 ## Proposed timeline
+Week 10: 
+Week 11: 
+Week 12: 
+Week 13:
+Week 14: 
 
 
 ## Team organization
