@@ -14,25 +14,39 @@ Our project explores principles for thoughtful choices, using insights from the 
  - 
 
 ## Additional data
- - 
+ - **Wikipedia article traffic**
+ To represent the popularity of the concepts for task 1, we will use the number of views of the corresponding Wikipedia pages. 
+ To obtain this data, we scrapped the [wikishark](https://www.wikishark.com/) website. The data will span from 2008 to 2014, allowing for examinations over the Wikispeedia dataset timeframe.
+
 
 ## Project plans & Methods
 
-### Task 1:
+### Task 1: Analyse page position of clicked links
+We obtain the x and y coordinates of the links by using Selenium. It enables us to open the html file of the articles in a simulated browser and then select the links we are interested in. We set the window size of the browser to 1920x1080 because it is the most common. When the next articlein path is accessible via several links, we select the coordinates of all these links.
+We run this algorithm on each path of the 50 most popular source-target peers and compare the results between the optimal paths, those of people who didn't finish the game and those of people who did.
 
-### Task 2:
 
-### Task 2:
+### Task 2: Analyse the popularity of concepts chosen
 
+
+### Task 3:
+
+### Task 4:
+
+### Task 5:
+
+### Task 6:
+
+### Task 7:
 
 
 ## Proposed timeline
-Week 10: 
-Week 11: 
-Week 12: 
-Week 13:
-Week 14: 
 
+22.11.2023: Data handling, preprocessing
+29.11.2023: Implement tasks
+06.12.2023: Compile final data analysis
+13.12.2023: Finalize visualizations and start writing the data story
+20.12.2023: Clean the repository and finalize the data story webpage
 
 ## Team organization
 
@@ -40,4 +54,4 @@ Yasmine Chaker: task X
 Hassen Aissa: task X
 Reza Machraoui: task X
 Matisse Van Schalkwijk: task X
-Lysandre Costes: task X
+Lysandre Costes: tasks 1 and 2
