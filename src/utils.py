@@ -13,6 +13,40 @@ import json
 
 import os
 
+
+
+def contains_category(path : list, category : str):
+    """Checks if a path contains a certain category."""
+   
+    if path is None : 
+        return False
+    
+    for elt in path :
+        if elt is None :
+            continue
+        if category in elt :
+            return True
+    return False
+
+def get_main_category(article, categories):
+    """Get the main category of an article."""
+    try:
+        return categories[categories["article"] == article]["category"].values[0][0]
+    except:
+        return None
+    
+def find_hub(path, ranks, categories):
+    """Returns the hub of a path and its corresponding category."""
+    #delete the first and last element of the path as they are not relevant
+    path = path[1:-1]
+    path_ranks = [ranks.get(art, 0) for art in path]
+    max_rank = max(path_ranks)
+    max_rank_idx = path_ranks.index(max_rank)
+    art_hub = path[max_rank_idx]
+    category_hub = get_main_category(art_hub, categories)
+    return art_hub, category_hub
+
+
 def load_dataframe(file_path: str, skip_rows: int, columns: list) -> pd.DataFrame:
     """Load a DataFrame from a file."""
     df = pd.read_csv(file_path, sep="\t", skiprows= skip_rows, header=None)
