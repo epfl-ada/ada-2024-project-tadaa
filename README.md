@@ -39,8 +39,8 @@ We can compare these values with the players' performances to discover interesti
 
 ### Task 3: Analyse LLM performance in Wikispeedia
 
-We start this task by comparing some models and doing prompt engineering in order to get the model understand the task and output the right format. We decide to use Qwe3b-4-bit-quantized as it fits in our GPU resources and it gives good results.
-We observe that sometimes the model still gave us articles from outside the list. In order to deal with that, we add another step to the generation algorithm. If the word returned is not in the list we keep the conversation context with the model and send this new request asking it to correct itself. <br>
+We use Qwen3b-4-bit-quantized as it fits in our GPU resources and it gives good results. We start by doing prompt engineering in order to get the model to understand the task.
+If the word returned is not in the list we keep the conversation context with the model and send this new request asking it to correct itself. <br>
 By this, we make the model rethink its answer and give it another chance to correct its choice. If the model persists in choosing a word not in the list, we consider the path failed. Otherwise, we recompute the list to chose from by getting the links in page that the model chose and removing from it all the articles that we went through. This allows to avoid looping in a circular fashion indefinitely. If the target word is in the list, then we consider the path a success and we stop the algorithm. Otherwise, we reset the model context in order to make the prompt short enough to fit into our GPU resources and we redo the same steps.
 We only allow the model to run for 50 steps after which we consider the path as a failure.<br>
 
