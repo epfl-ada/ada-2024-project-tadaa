@@ -3,6 +3,7 @@
 ## Abstract
 
 TODO: Expliciter que c'est un bold statement comme elle avait dit
+TODO: dire que lorsqu'on parle de performance ou de résultat on parle d'obtenir le path le plus court
 
 Our project explores principles for thoughtful choices, using insights from the Wikispeedia dataset. First, it's crucial not to rely solely on large language models (LLMs) for guidance, as they provide data on topics but not necessarily the best course of action. Consulting others (leveraging crowd knowledge) can also enrich decision-making, though it’s important to understand that crowds don’t always succeed; examining specific paths reveals how groupthink and misjudgments can lead to failure. Recognizing that everything is interconnected—similar to the "small world" phenomenon—highlights that even seemingly minor information can be significant. Analyzing failed attempts to reach a target page in Wikispeedia, we find that some users may not have examined the full content of each page or made a thorough effort. This may reflect a tendency to stick to surface-level information, suggesting that better decisions often come from fully exploring available information rather than stopping at the first glance.
 
@@ -27,7 +28,8 @@ We run this algorithm on each path of the 50 most popular source-target peers an
 
 
 ### Task 2: Analyse the popularity of concepts chosen
-
+We use the wikipedia article traffic data (cf. Additional data) to modelize the popularity of the articles. Then we look at the frequency with which concepts are chosen and their popularity. 
+We can compare these values with the players' performances to discover interesting patterns showing the impact of exploring new concepts.
 
 ### Task 3:
 
