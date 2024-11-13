@@ -12,7 +12,7 @@ def contains_category(x, category):
             return True
     return False
 
-def get_category(article, categories):
+def get_main_category(article, categories):
     try:
         return categories[categories["article"] == article]["category"].values[0]
     except:
