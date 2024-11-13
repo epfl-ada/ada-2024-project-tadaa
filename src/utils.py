@@ -38,7 +38,13 @@ def get_main_category(article, categories):
 def find_hub(path, ranks, categories):
     """Returns the hub of a path and its corresponding category."""
     #delete the first and last element of the path as they are not relevant
-    path = path[1:-1]
+    if path is None or type(path) != list or len(path) < 3: 
+        return 'No Hub', 'No HUb'
+    if len(path) == 3:
+        art_hub = path[1]
+        category_hub = get_main_category(art_hub, categories)
+        return art_hub, category_hub
+    path = path[1:-1] 
     path_ranks = [ranks.get(art, 0) for art in path]
     max_rank = max(path_ranks)
     max_rank_idx = path_ranks.index(max_rank)
