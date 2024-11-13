@@ -140,3 +140,6 @@ def read_llm_paths(path: str) -> dict:
     with open(path, "r") as f:
         responses = json.load(f)
     return responses
+
+def page_rank(graph, alpha=0.85):
+    return nx.pagerank(graph, alpha=alpha)
