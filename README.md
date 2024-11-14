@@ -1,11 +1,25 @@
-# What can wikispeedia teach us about making decisions in life?
+# What can Wikispeedia teach us about making decisions in life?
 
 ## Abstract
 
-Our project explores principles for thoughtful choices, using insights from the Wikispeedia dataset. First, we examine how much effort players put in their games and the effect it has on their success. We find that some users may not have examined the full content of each page or made a thorough effort. This may reflect a tendency to stick to surface-level information, suggesting that better decisions often come from fully exploring available information rather than stopping at the first glance. In addition to that, we emphasize the importance to not rely solely on large language models (LLMs) for guidance, as they don't provide the best course of actions and are not always consistent. Finally, we shade the light on the importance of society. Consulting others (leveraging crowd knowledge) can also enrich decision-making, though it’s important to understand that crowds don’t always succeed; examining specific paths reveals how groupthink and misjudgments can lead to failure. Analyzing failed attempts to reach a target page in Wikispeedia, 
+<!-- 164 words -->
+
+In Wikispeedia, players move from a source to a target article with minimal clicks—similar to how we pursue life goals, seeking the most efficient path. Our project draws three key lessons from these games for making better decisions.
+
+First, we observe that players who skimmed through pages often missed critical information, impacting their success. This reflects a tendency to rely on surface-level data, highlithing that thorough research and examining all available information often lead to better outcomes.
+
+Second, while LLMs can aid decision-making, over-relying on them is risky; they don’t always offer the best or most consistent advice.
+
+Lastly, consulting others can enrich our choices by leveraging crowd knowledge. However, it’s important to recognize that crowds don’t always succeed. Groupthink can distort judgment, so it’s crucial to remain critical and deliberate rather than blindly following popular opinion.
+
+These insights, while inspired by a game, underline the value of thoughtful, well-informed decisions in real life—where complexities go beyond simply choosing the next link.
+
+NB: When we talk about performance in this project, we consider the shortness of the paths as the criterion.
+
+<!-- Our project explores principles for thoughtful choices, using insights from the Wikispeedia dataset. First, we examine how much effort players put in their games and the effect it has on their success. We find that some users may not have examined the full content of each page or made a thorough effort. This may reflect a tendency to stick to surface-level information, suggesting that better decisions often come from fully exploring available information rather than stopping at the first glance. In addition to that, we emphasize the importance to not rely solely on large language models (LLMs) for guidance, as they don't provide the best course of actions and are not always consistent. Finally, we shade the light on the importance of society. Consulting others (leveraging crowd knowledge) can also enrich decision-making, though it’s important to understand that crowds don’t always succeed; examining specific paths reveals how groupthink and misjudgments can lead to failure. Analyzing failed attempts to reach a target page in Wikispeedia,
 
 When we talk about performance here, we consider the shortness of the paths as the criterion.
-Also, It's important to clarify that extrapolating the advice found on Wikispeedia to decision-making in life in general is an exaggeration and should be taken with a grain of salt.
+Also, It's important to clarify that extrapolating the advice found on Wikispeedia to decision-making in life in general is an exaggeration and should be taken with a grain of salt. -->
 
 ## Research questions
 
@@ -16,7 +30,7 @@ Also, It's important to clarify that extrapolating the advice found on Wikispeed
 ## Additional data
 
 - **Generated Paths by Qwen 3B**
-  We genrated paths for the 10 most player source-target pairs in order to compare LLM performance to human players performance. We discuss the generation strategy in the following section.
+  We generated paths for the 10 most played source-target pairs in order to compare LLM performance to human players performance. We discuss the generation strategy in the following section.
 
 ## Project plans & Methods
 
@@ -29,17 +43,20 @@ We run this algorithm on each path of the 50 most popular source-target peers an
 
 We use Qwen3b-4-bit-quantized as it fits in our GPU resources and it gives good results. We start by doing prompt engineering in order to get the model to understand the task.
 If the word returned is not in the list we keep the conversation context with the model and send this new request asking it to correct itself. <br>
-By this, we make the model rethink its answer and give it another chance to correct its choice. If the model persists in choosing a word not in the list, we consider the path failed. Otherwise, we recompute the list to chose from by getting the links in page that the model chose and removing from it all the articles that we went through. This allows to avoid looping in a circular fashion indefinitely. If the target word is in the list, then we consider the path a success and we stop the algorithm. Otherwise, we reset the model context in order to make the prompt short enough to fit into our GPU resources and we redo the same steps.
+By this, we make the model rethink its answer and give it another chance to correct its choice. If the model persists in choosing a word not in the list, we consider the path failed. Otherwise, we recompute the new list to choose from by getting the links in the page that the model chose. In order to avoid looping in a circular fashion indefinitely, we remove from this list all the articles that the model already visited. If the model reaches the target word, then we consider the path a success and we stop the algorithm. Otherwise, we reset the model context in order to make the prompt short enough to fit into our GPU resources and we redo the same steps.
 We only allow the model to run for 50 steps after which we consider the path as a failure.<br>
 
 For each source-target pair, we make the model play 100 games in order to get statistically relevant paths that will allow us to make meaningful comparison to the human players paths.
 
 ### Task 3: Analyse crowd performance vs average performance
 
-Our idea is to start a game at a certain page `src` and target `dst` with all the data of the previous games. To choose the second page we click on, we aggregate all the paths that have source `src` and destination `dst`, including those that go through `src` but still target `dst`. This way, we have the next page each player went to for all these paths from `src`, we choose our next page as the one most players chose. We repeat this operation until we reach `dst` (we call this procedure the crowd algorithm). For Condorcet's jury theorem to apply, we need to maximise the number of voters at each step. To do this, we chose paths with maximum voter scores. We call the voter score of a path the minimum number of voters encountered by the crowd algorithm.
+Our idea is to start a game with a given source `src` and target `dst` that might not have been played before. We then exploit all the data of the previous games. To choose the second page to click on, we aggregate all the paths that either have source `src` and destination `dst`, or those that go through `src` and have target `dst`. This way, we have the next page each player chose after `src`. We select our next page using majority voting. We repeat this operation until we reach `dst` (we call this procedure the crowd algorithm). For Condorcet's jury theorem to apply, we need to maximise the number of voters at each step. To do this, we chose paths that maximize 'voter scores'. We call the voter score of a path the minimum number of voters encountered by the crowd algorithm. (ie: at each step of the path, we guarantee a certain number of voters)
 
-We run this algorithm on each (`src`, `dst`) tuple with a voter score > 50 and compare the results with the real players obtained on average for the same (`src`, `dst`) tuple.
+We run this algorithm on each (`src`, `dst`) tuple with a voter score > 50 and compare the results with what the real players obtained on average for the same (`src`, `dst`) tuple.
 
+## Other explorations that didn't yield
+
+We studied in depth the change of the paths specificities (Hubs categories, most visited articles...) over the time. We wanted to see if big events (ex: World Cup) affected the way players thought and found out it was not the case. We also studied what the characteristics of the graph are in order to cluster it and find the categories that would constitute a "joker" shortcut from any article to another. These ideas did not give fruitful results.
 
 ## Proposed timeline
 
@@ -49,10 +66,8 @@ We run this algorithm on each (`src`, `dst`) tuple with a voter score > 50 and c
 13.12.2023: Finalize visualizations and start writing the data story <br>
 20.12.2023: Clean the repository and finalize the data story webpage <br>
 
-## Team organization
+## Organization within the team
 
-Yasmine Chaker: task X <br>
-Hassen Aissa: task 2 <br>
-Reza Machraoui: task 3 <br>
-Matisse Van Schalkwijk: task X <br>
-Lysandre Costes: tasks 1 and 3 <br>
+Task 1: Lysandre Costes <br>
+Task 2: Hassen Aissa - Yasmine Chaker <br>
+Task 3: Réza Machraoui - Matisse Vanschalkwijk <br>

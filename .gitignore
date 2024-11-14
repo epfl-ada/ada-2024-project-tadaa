@@ -1,3 +1,5 @@
 data/wikispeedia_paths-and-graph/
+data/wikispeedia_articles_plaintext/
+data/wikispeedia_articles_html/
 .DS_Store
 __pycache__/

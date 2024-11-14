@@ -44,7 +44,7 @@ def clean_path(path: list) -> list:
 def manage_paths(paths_df: pd.DataFrame, categories: dict) -> pd.DataFrame:
     """Manage paths in the DataFrame."""
     if "target" not in paths_df.columns:
-        paths_df["rating"].fillna(-1, inplace=True)
+        paths_df["rating"] = paths_df["rating"].fillna(-1)
     paths_df["path"] = paths_df["path"].apply(lambda x: x.split(";"))
     paths_df['nb_back_clicks'] = paths_df['path'].apply(lambda x: x.count('<'))
     paths_df['nb_clicks'] = paths_df["path"].apply(lambda x: len(x) - 1)

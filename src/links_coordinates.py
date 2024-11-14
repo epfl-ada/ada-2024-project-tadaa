@@ -9,6 +9,17 @@ import os
 
 
 def compute_shortest_path(source, target, graph):
+    """
+    Compute the shortest path between source and target nodes in a graph.
+
+    Args:
+        source: source article name
+        target: target article name
+        graph: networkx graph
+
+    Returns:
+        The shortest path between source and target nodes in the graph
+    """
     try:
         shortest_path = nx.shortest_path(graph, source=source, target=target)
         return shortest_path
@@ -17,10 +28,30 @@ def compute_shortest_path(source, target, graph):
 
 
 def get_article_html_path(article_name):
+    """
+    Get the path of the html file of the article.
+
+    Args:
+        article_name: article name
+
+    Returns:
+        The path of the html file of the article
+    """
     return os.path.abspath("data/wpcd/wp/{}/{}.htm".format(article_name[0].lower(), article_name))
 
 
 def get_path_links_coordinates(browser, articles, cache):
+    """
+    Get the coordinates of the links between articles in the path.
+
+    Args:
+        browser: selenium webdriver used to simulate the browser
+        articles: list of articles in the path
+        cache: dictionary to store the coordinates of the links between articles
+    
+    Returns:
+        A list of coordinates of the links between articles in the path
+    """
     path_links_coords = []
     for i in range(len(articles) - 1):
         cur_article = articles[i]
@@ -82,7 +113,7 @@ if __name__ == "__main__":
     filtered_unfinished_paths = filtered_unfinished_paths.drop_duplicates(subset=["hashedIpAddress", "timestamp"])
 
     filtered_unfinished_paths["links_coords"] = filtered_unfinished_paths["path"].apply(eval).apply(lambda p: get_path_links_coordinates(browser, p, cache))
-    filtered_unfinished_paths = filtered_unfinished_paths[["hashedIpAddress", "timestamp", "durationInSec", "play_duration", "source", "target", "links_coords"]]
+    filtered_unfinished_paths = filtered_unfinished_paths[["hashedIpAddress", "timestamp", "durationInSec", "play_duration", "clean_path", "source", "target", "links_coords"]]
     filtered_unfinished_paths.to_csv("data/links_coordinates_unfinished.csv", index=False)
 
     # finished paths
@@ -91,7 +122,7 @@ if __name__ == "__main__":
     filtered_finished_paths = filtered_finished_paths.drop_duplicates(subset=["hashedIpAddress", "timestamp"])
 
     filtered_finished_paths["links_coords"] = filtered_finished_paths["path"].apply(eval).apply(lambda p: get_path_links_coordinates(browser, p, cache))
-    filtered_finished_paths = filtered_finished_paths[["hashedIpAddress", "timestamp", "durationInSec", "source", "target", "links_coords"]]
+    filtered_finished_paths = filtered_finished_paths[["hashedIpAddress", "timestamp", "durationInSec", "clean_path", "source", "target", "links_coords"]]
     filtered_finished_paths.to_csv("data/links_coordinates_finished.csv", index=False)
 
     browser.quit()
