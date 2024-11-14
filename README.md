@@ -64,6 +64,6 @@ We studied in depth the change of the paths specificities (Hubs categories, most
 20.12.2023: Clean the repository and finalize the data story webpage <br>
 
 ## Organization within the team
-Task 1: Lysandre Costes
-Task 2: Hassen Aissa - Yasmine Chaker
-Task 3: Réza Machraoui - Matisse Vanschalkwijk
+Task 1: Lysandre Costes <br>
+Task 2: Hassen Aissa - Yasmine Chaker <br>
+Task 3: Réza Machraoui - Matisse Vanschalkwijk <br>
