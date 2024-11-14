@@ -2,16 +2,16 @@
 
 ## Abstract
 
-Our project explores principles for thoughtful choices, using insights from the Wikispeedia dataset. First, we examine how much effort players put in their games and the effect it has on their success. we find that some users may not have examined the full content of each page or made a thorough effort. This may reflect a tendency to stick to surface-level information, suggesting that better decisions often come from fully exploring available information rather than stopping at the first glance. In addition to that, we emphasize the importance to not rely solely on large language models (LLMs) for guidance, as they don't provide the best course of actions and are not always consistent. Finally, we shade the light on the importance of society. Consulting others (leveraging crowd knowledge) can also enrich decision-making, though it’s important to understand that crowds don’t always succeed; examining specific paths reveals how groupthink and misjudgments can lead to failure. Analyzing failed attempts to reach a target page in Wikispeedia, 
+Our project explores principles for thoughtful choices, using insights from the Wikispeedia dataset. First, we examine how much effort players put in their games and the effect it has on their success. We find that some users may not have examined the full content of each page or made a thorough effort. This may reflect a tendency to stick to surface-level information, suggesting that better decisions often come from fully exploring available information rather than stopping at the first glance. In addition to that, we emphasize the importance to not rely solely on large language models (LLMs) for guidance, as they don't provide the best course of actions and are not always consistent. Finally, we shade the light on the importance of society. Consulting others (leveraging crowd knowledge) can also enrich decision-making, though it’s important to understand that crowds don’t always succeed; examining specific paths reveals how groupthink and misjudgments can lead to failure. Analyzing failed attempts to reach a target page in Wikispeedia, 
 
 When we talk about performance here, we consider the shortness of the paths as the criterion.
 Also, It's important to clarify that extrapolating the advice found on Wikispeedia to decision-making in life in general is an exaggeration and should be taken with a grain of salt.
 
 ## Research questions
 
-- Does people lazyness affect their performance ? Is there a noticeable difference in the page position of clicked links between successful and unsuccessful players?
+- Does people lazyness affect their performance? Is there a noticeable difference in the page position of clicked links between successful and unsuccessful players?
 - Can we always trust LLMs? Is it safe to take their answers as facts without second checking?
-- Will a crowd of players do better than the same players individually ? In other words, does Condorcet's jury theorem apply ? If it applies, what are the recurring patterns for the cases in which the crowd fails to beat the individuals ?
+- Will a crowd of players do better than the same players individually? In other words, does Condorcet's jury theorem apply? If it applies, what are the recurring patterns for the cases in which the crowd fails to beat the individuals?
 
 ## Additional data
 

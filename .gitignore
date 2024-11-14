@@ -1,2 +1,3 @@
-data/
+data/wikispeedia_paths-and-graph/
 .DS_Store
+__pycache__/
