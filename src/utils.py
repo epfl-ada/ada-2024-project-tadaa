@@ -94,3 +94,6 @@ def read_llm_paths(path: str) -> dict:
 def page_rank(graph, alpha=0.85):
     return nx.pagerank(graph, alpha=alpha)
 
+def path_length(list):
+    """Compute the length of a path considering the backclicks and removing first click"""
+    return len(clean_path(list)) - 1
