@@ -1,8 +1,17 @@
 import pandas as pd
 import networkx as nx
 
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from urllib.parse import unquote
 import json
 
+
+import os
 
 def load_dataframe(file_path: str, skip_rows: int, columns: list) -> pd.DataFrame:
     """Load a DataFrame from a file."""
@@ -78,11 +87,53 @@ def manage_links(links_df: pd.DataFrame) -> dict[str, list]:
     return dict_links
 
 
+def compute_shortest_path(source, target, graph):
+    try:
+        shortest_path = nx.shortest_path(graph, source=source, target=target)
+        return shortest_path
+    except nx.NetworkXNoPath:
+        return None
+
+
 def create_graph(links_df: pd.DataFrame) -> nx.DiGraph:
     """Create a graph from the links DataFrame."""
     graph = nx.from_pandas_edgelist(links_df,
         source="source", target="target", create_using=nx.DiGraph)
     return graph
+def get_article_html_path(article_name):
+    return os.path.abspath("data/wpcd/wp/{}/{}.htm".format(article_name[0].lower(), article_name))
+
+
+def get_path_links_coordinates(browser, articles, cache):
+    path_links_coords = []
+    for i in range(len(articles) - 1):
+        cur_article = articles[i]
+        next_article = articles[i + 1]
+        if cur_article == "<":
+            continue
+        if cur_article in cache and next_article in cache[cur_article]:
+            path_links_coords.extend(cache[cur_article][next_article])
+            print("Cache hit for {} -> {}".format(cur_article, next_article))
+            continue
+
+        local_html_file = get_article_html_path(cur_article)
+
+        print("Opening file: ", local_html_file)
+        browser.get("file:///" + local_html_file)
+
+        next_url = "../../wp/{}/{}.htm".format(next_article[0].lower(), next_article)
+
+        links = browser.find_elements(By.XPATH, "//a[@href=\"{}\"]".format(next_url))
+        links_coords = [(link.location["x"], link.location["y"]) for link in
+                        links]  # if many links are found we take all their coordinates
+
+        if cache.get(cur_article) is None:
+            cache[cur_article] = {}
+        cache[cur_article][next_article] = links_coords
+
+        path_links_coords.extend(links_coords)
+
+    return path_links_coords
 
 
 def read_llm_paths(path: str) -> dict:
@@ -90,7 +141,5 @@ def read_llm_paths(path: str) -> dict:
         responses = json.load(f)
     return responses
 
-
 def page_rank(graph, alpha=0.85):
     return nx.pagerank(graph, alpha=alpha)
-
