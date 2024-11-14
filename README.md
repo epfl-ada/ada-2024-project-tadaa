@@ -52,7 +52,7 @@ We run this algorithm on each (`src`, `dst`) tuple with a voter score > 50 and c
 ## Team organization
 
 Yasmine Chaker: task X <br>
-Hassen Aissa: task 3 <br>
-Reza Machraoui: task 4 <br>
+Hassen Aissa: task 2 <br>
+Reza Machraoui: task 3 <br>
 Matisse Van Schalkwijk: task X <br>
 Lysandre Costes: tasks 1 and 3 <br>
