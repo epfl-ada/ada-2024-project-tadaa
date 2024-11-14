@@ -40,6 +40,8 @@ Our idea is to start a game at a certain page `src` and target `dst` with all th
 
 We run this algorithm on each (`src`, `dst`) tuple with a voter score > 50 and compare the results with the real players obtained on average for the same (`src`, `dst`) tuple.
 
+## Other explorations that didn't yield
+We studied in depth the change of the paths specificities (Hubs categories, most visited articles...) over the time. We wanted to see if big events (ex: World Cup) affected the way players thought and found out it was not the case. We also studied what the characteristics of the graph are in order to cluster it and find the categories that would constitute a "joker" shortcut from any article to another. These ideas did not give fruitful results.
 
 ## Proposed timeline
 
@@ -49,10 +51,3 @@ We run this algorithm on each (`src`, `dst`) tuple with a voter score > 50 and c
 13.12.2023: Finalize visualizations and start writing the data story <br>
 20.12.2023: Clean the repository and finalize the data story webpage <br>
 
-## Team organization
-
-Yasmine Chaker: task X <br>
-Hassen Aissa: task 2 <br>
-Reza Machraoui: task 3 <br>
-Matisse Van Schalkwijk: task X <br>
-Lysandre Costes: tasks 1 and 3 <br>
