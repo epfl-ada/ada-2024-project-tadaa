@@ -4,9 +4,9 @@ import networkx as nx
 import json
 
 
-def load_dataframe(file_path: str, skip_rows: int, columns: list) -> pd.DataFrame:
+def load_dataframe(file_path: str, columns: list) -> pd.DataFrame:
     """Load a DataFrame from a file."""
-    df = pd.read_csv(file_path, sep="\t", skiprows= skip_rows, header=None)
+    df = pd.read_csv(file_path, sep="\t", comment='#')
     df.columns = columns
     return df
 
