@@ -37,7 +37,6 @@ def crowd(src, dest, finished_paths):
             break
     return path, np.array(lst_votes)
 
-# For the next analysis, it will be convenient to have functions to compute stats for any list of games
 def stats_crowd(games, finished_paths):
     """Compute paths thanks to the crowd algorithm."""
     res_crowd = []
