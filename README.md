@@ -1,6 +1,6 @@
 # What can Wikispeedia teach us about making decisions in life?
 
-! [meme](data/tadaa_meme.jpg)
+<img src="data/tadaa_meme.jpg">
 
 
 ## Abstract
