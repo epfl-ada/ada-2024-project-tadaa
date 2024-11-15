@@ -11,9 +11,9 @@ def find_target(target, list):
             ret = list[i+1]
     return ret
 
-def find_next(source, dest, finished_paths):
+def find_next(source, dest, finished_paths_df):
     """Find the next page the crowd algorithm will click on."""
-    paths_src = finished_paths[finished_paths['path'].apply(lambda x: source in x and x[-1]==dest)]['path']
+    paths_src = finished_paths_df[finished_paths_df['path'].apply(lambda x: source in x and x[-1]==dest)]['path']
     next_list = [find_target(source, path) for path in paths_src]
     next_list = [elem for elem in next_list if elem != '']
     number_of_votes = len(next_list)
@@ -23,13 +23,13 @@ def find_next(source, dest, finished_paths):
         return number_of_votes, Counter(next_list).most_common(1)[0][0]
     
 
-def crowd(src, dest, finished_paths):
+def crowd(src, dest, finished_paths_df):
     """Crowd algorithm where every players vote at each step."""
     next = src
     path = [src]
     lst_votes = []
     while(next != dest):
-        nb_votes, next = find_next(next, dest, finished_paths)
+        nb_votes, next = find_next(next, dest, finished_paths_df)
         lst_votes.append(nb_votes)
         if not(next in path) and nb_votes!=0:
             path.append(next)
@@ -37,20 +37,20 @@ def crowd(src, dest, finished_paths):
             break
     return path, np.array(lst_votes)
 
-def stats_crowd(games, finished_paths):
+def stats_crowd(games, finished_paths_df):
     """Compute paths thanks to the crowd algorithm."""
     res_crowd = []
     for (src, dst) in games:
-        path, votes = crowd(src, dst, finished_paths)
+        path, votes = crowd(src, dst, finished_paths_df)
         if (np.all(votes > 0)):
             res_crowd.append(((src, dst), len(path)))
     return res_crowd
 
-def stats_players(games, finished_paths):
+def stats_players(games, finished_paths_df):
     """Compute averages of length of paths given by individual players"""
     avg_res = []
     for (src, dst) in games:
-        paths = finished_paths[finished_paths['path'].apply(lambda x: x[0]==src and x[-1]==dst)]['path']
+        paths = finished_paths_df[finished_paths_df['path'].apply(lambda x: x[0]==src and x[-1]==dst)]['path']
         if len(paths)>0:
             avg_res.append(((src, dst), paths.apply(lambda p: len(p)).sum()/len(paths)))
     return avg_res
@@ -59,7 +59,7 @@ def popular_words(occ_all, count_threshold=200):
     """Output the most popular pages in any games given the occurence list of any word in the dataset."""
     return [element for element, count in occ_all.items() if count > count_threshold]
 
-def voter_score(finished_paths, popular_words):
+def voter_score(finished_paths_df, popular_words):
     """We compute the minimum number of voters in the most promising paths."""
     scores = []
     iter = 0
@@ -68,7 +68,7 @@ def voter_score(finished_paths, popular_words):
             print(f'iter #{iter}/{len(popular_words)**2}')
             iter += 1
             if (w1 != w2):
-                res_path, votes = crowd(w1, w2, finished_paths)
+                res_path, votes = crowd(w1, w2, finished_paths_df)
                 if (np.all(votes > 0) and res_path[-1]==w2):
                     scores.append(((w1, w2), np.min(votes)))
     return scores
@@ -78,7 +78,7 @@ def games_to_play(scores, score_threshold=50):
     return [((src, dst), count) for ((src, dst), count) in scores if count > score_threshold and src != '<' and dst != '<']
 
 
-def compute_scores(finished_paths):
+def compute_scores(finished_paths_df):
     """
     We compute a score for each tuple of different words.
     We take the score to be the minimum of voters for each step of the crowd algorithù.
@@ -88,17 +88,17 @@ def compute_scores(finished_paths):
     """
 
     words = set()
-    for p in finished_paths["path"]:
+    for p in finished_paths_df["path"]:
         words.update(p)
     
     occ_all = Counter()
-    for p in finished_paths["path"]:
+    for p in finished_paths_df["path"]:
         occ_all += Counter(p)
     
     popular_words = popular_words(occ_all)
 
     # We compute all the scores for the most promising games
-    scores = voter_score(finished_paths, popular_words)
+    scores = voter_score(finished_paths_df, popular_words)
 
     df = pd.DataFrame(games_to_play(scores), columns=["src_dst", "score"])
     df[["src", "dst"]] = pd.DataFrame(df["src_dst"].tolist(), index=df.index)
@@ -106,7 +106,7 @@ def compute_scores(finished_paths):
     # Save to CSV
     df.to_csv("./data/crowd_paths.csv", index=False)
 
-def stats_players_crowd(finished_paths):
+def stats_players_crowd(finished_paths_df):
     """
     We compute the scores achieved by the crowd vs scores achieved by individual players.
     Result is stored in a csv file.
@@ -115,11 +115,11 @@ def stats_players_crowd(finished_paths):
 
     ans_crowd = []
     for (src, dst) in games_to_play[['src', 'dst']].values:
-        ans_crowd.append(crowd(src, dst, finished_paths))
+        ans_crowd.append(crowd(src, dst, finished_paths_df))
     
     ans_stats = []
     for (src, dst) in games_to_play[['src', 'dst']].values:
-        paths = finished_paths[finished_paths['path'].apply(lambda x: src in x and x[-1]==dst)]['path']
+        paths = finished_paths_df[finished_paths_df['path'].apply(lambda x: src in x and x[-1]==dst)]['path']
         # Find the index of the first occurrence of the target element
         paths_src = []
         for p in paths:
