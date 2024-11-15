@@ -153,7 +153,8 @@ def plot_llms_vs_players(sources: list, targets: list, finished_paths_df: pd.Dat
     fig.update_layout(
         xaxis=dict(tickmode='array', tickvals=list(range(len(sources))), ticktext=[f"{source} -> {target}" for source, target in zip(sources, targets)]),
         xaxis_title="Source -> Target",
-        yaxis_title="Path Length"
+        yaxis_title="Path Length",
+        height=600
     )
     fig.show()
 
@@ -188,31 +189,27 @@ def tstats_pvalues(sources: list, targets: list, finished_paths_df: pd.DataFrame
 def plot_tsatistics(sources: list, targets: list, t_stats: list, p_values: list, t_critical: list):
     """plot t-statistics and p-values"""
     fig = go.Figure()
-
-    # Add Bar and Scatter traces
     traces = [
         go.Bar(x=[f"{source} -> {target}" for source, target in zip(sources, targets)], y=t_stats, name='T-Statistics'),
         go.Scatter(x=[f"{source} -> {target}" for source, target in zip(sources, targets)], y=t_critical, mode='lines', name='Critical Value', line=dict(dash='dash', color='red'))
     ]
     for trace in traces:
         fig.add_trace(trace)
-
-    # Add p-value texts
     for i, p_value in enumerate(p_values):
         fig.add_trace(go.Scatter(
             x=[f"{sources[i]} -> {targets[i]}"],
             y=[t_stats[i]],
             mode='text',
-            text=[f"p-value:\n {p_value:.1e}"],
+            text=[f"p-value: {p_value: .1e}"],
             textposition='top center',
             showlegend=False
         ))
 
-    # Update layout
     fig.update_layout(
         xaxis=dict(tickmode='array', tickvals=list(range(10)), ticktext=[f"{source} -> {target}" for source, target in zip(sources, targets)], tickangle=45),
         yaxis=dict(title='T-Statistic', range=[0, 35]),
         title='T-Statistics for Player Paths vs LLM Paths with corresponding p-values',
+        height=600,
     )
 
     fig.show()
