@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 
 def load_dataframe(file_path: str, columns: list) -> pd.DataFrame:
     """Load a DataFrame from a file."""
-    df = pd.read_csv(file_path, sep="\t", comment='#')
+    df = pd.read_csv(file_path, sep="\t", comment='#', header=None)
     df.columns = columns
     return df
 

@@ -1,7 +1,7 @@
 src,dst,crowd_score,players_score
 Atlantic_Ocean,Ocean,1,1.0
 Africa,Zebra,4,3.400890868596882
-Europe,Adolf_Hitler,2,2.2613636363636362
+Europe,Adolf_Hitler,2,2.264367816091954
 Europe,Viking,2,2.4316770186335406
 United_States,George_W._Bush,1,1.1917808219178083
 United_States,Adolf_Hitler,2,2.4464285714285716
@@ -15,16 +15,15 @@ Christianity,God,2,2.2142857142857144
 Christianity,Jesus,1,1.0
 India,Zebra,2,3.7557603686635943
 France,Zebra,3,5.357142857142857
-World_War_II,Adolf_Hitler,1,1.0113636363636365
+World_War_II,Adolf_Hitler,1,1.0114503816793894
 World_War_II,The_Holocaust,1,1.146067415730337
-Religion,Jesus,2,1.7169811320754718
 Ancient_Egypt,Bean,3,4.635514018691588
 Sweden,Viking,1,1.5555555555555556
 Brazil,Zebra,5,4.656716417910448
 Mammal,Zebra,1,1.408080808080808
 Mammal,Telephone,3,3.6
 Bird,Great_white_shark,4,4.478260869565218
-Germany,Adolf_Hitler,1,1.2216748768472907
+Germany,Adolf_Hitler,1,1.2227722772277227
 Germany,Viking,2,3.1121495327102804
 Earth,Viking,3,4.046997389033942
 Animal,Zebra,2,2.5548172757475083

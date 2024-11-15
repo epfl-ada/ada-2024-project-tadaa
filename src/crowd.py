@@ -224,5 +224,5 @@ def stats_players_crowd(finished_paths_df):
     data['crowd_score'] = [utils.path_length(path) for (path, scores) in ans_crowd]
     data['players_score'] = ans_stats
     # Save to CSV
-    data.to_csv("./data/crowd_vs_players.csv.csv", index=False)
+    data.to_csv("./data/crowd_vs_players.csv", index=False)
     
