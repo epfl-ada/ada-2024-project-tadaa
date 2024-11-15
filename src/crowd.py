@@ -3,16 +3,35 @@ from collections import Counter
 import pandas as pd
 import src.utils as utils
 
-def find_target(target, list):
-    """Find the target and output its successor."""
+def find_target(target, path):
+    """
+    Find the target article and output its successor.
+
+    Args:
+        target: target article name
+        path: list of articles
+
+    Returns:
+        Next article name the path jumped to (after target).
+    """
     ret = ''
-    for i in range(len(list) - 1):
-        if list[i] == target:
-            ret = list[i+1]
+    for i in range(len(path) - 1):
+        if path[i] == target:
+            ret = path[i+1]
     return ret
 
 def find_next(source, dest, finished_paths_df):
-    """Find the next page the crowd algorithm will click on."""
+    """
+    Find the next page the crowd algorithm will click on.
+    
+    Args:
+        source: first article name in the game
+        dest: last article name in the game
+        finished_paths_df : dataframe containing every successful paths played
+
+    Returns:
+        Next article the crowd chose to click on.
+    """
     paths_src = finished_paths_df[finished_paths_df['path'].apply(lambda x: source in x and x[-1]==dest)]['path']
     next_list = [find_target(source, path) for path in paths_src]
     next_list = [elem for elem in next_list if elem != '']
@@ -24,7 +43,18 @@ def find_next(source, dest, finished_paths_df):
     
 
 def crowd(src, dest, finished_paths_df):
-    """Crowd algorithm where every players vote at each step."""
+    """
+    Crowd algorithm where every players vote at each step.
+
+    Args:
+        source: first article name in the game
+        dest: last article name in the game
+        finished_paths_df : dataframe containing every successful paths played
+
+    Returns:
+        path : path computed by the crowd algorithm (list)
+        votes : the number of votes at each step of the algorithm (np.array)
+    """
     next = src
     path = [src]
     lst_votes = []
@@ -38,16 +68,34 @@ def crowd(src, dest, finished_paths_df):
     return path, np.array(lst_votes)
 
 def stats_crowd(games, finished_paths_df):
-    """Compute paths thanks to the crowd algorithm."""
+    """
+    Compute paths thanks to the crowd algorithm.
+    
+    Args:
+        games: list of (src, dst) tuples, each represent a game to be played
+        finished_paths_df : dataframe containing every successful paths played
+
+    Returns:
+        list of tuples associating a game with the length of the path found by the crowd algorithm.
+    """
     res_crowd = []
     for (src, dst) in games:
         path, votes = crowd(src, dst, finished_paths_df)
         if (np.all(votes > 0)):
-            res_crowd.append(((src, dst), len(path)))
+            res_crowd.append(((src, dst), utils.path_length(path)))
     return res_crowd
 
 def stats_players(games, finished_paths_df):
-    """Compute averages of length of paths given by individual players"""
+    """
+    Compute averages of length of paths given by individual players
+    
+    Args:
+        games: list of (src, dst) tuples, each represent a game to be played
+        finished_paths_df : dataframe containing every successful paths played
+
+    Returns:
+        list of tuples associating a game with the average length of the paths achieved by individual players.
+    """
     avg_res = []
     for (src, dst) in games:
         paths = finished_paths_df[finished_paths_df['path'].apply(lambda x: x[0]==src and x[-1]==dst)]['path']
@@ -56,11 +104,29 @@ def stats_players(games, finished_paths_df):
     return avg_res
 
 def popular_words(occ_all, count_threshold=200):
-    """Output the most popular pages in any games given the occurence list of any word in the dataset."""
+    """
+    Output the most popular articles in any games given the occurence list of any word in the dataset.
+
+    Args:
+        occ_all : occurence of every article names present in every successful paths played (Counter)
+        count_threshold : threshold indicating from which value we retain an article name (int)
+
+    Returns:
+        list of words that appear more than count_thresold times.
+    """
     return [element for element, count in occ_all.items() if count > count_threshold]
 
 def voter_score(finished_paths_df, popular_words):
-    """We compute the minimum number of voters in the most promising paths."""
+    """
+    Compute the minimum number of voters in the most promising paths.
+
+    Args:
+        finished_paths_df : dataframe containing every successful paths played
+        popular_words : list of article names that appeared a significant number of times
+
+    Returns:
+        List of tuples associating a game with the correspoding voter-score achieved during crowd algorithm.
+    """
     scores = []
     iter = 0
     for w1 in popular_words:
@@ -74,17 +140,31 @@ def voter_score(finished_paths_df, popular_words):
     return scores
 
 def games_to_play(scores, score_threshold=50):
-    """Clean the scores array and filter low voter_score paths."""
+    """
+    Clean the scores array and filter low voter-score paths.
+    
+    Args:
+        scores : list of voter-scores for each game
+        score_threshold : threshold indicating from which value we retain a game (int)
+
+    Returns:
+        Cleaned list of tuples associating a game with the correspoding voter-score.
+    """
     return [((src, dst), count) for ((src, dst), count) in scores if count > score_threshold and src != '<' and dst != '<']
 
 
 def compute_scores(finished_paths_df):
     """
-    We compute a score for each tuple of different words.
-    We take the score to be the minimum of voters for each step of the crowd algorithù.
-    We think it is a fair metric as a big score attest without fail the path makes intervene a lot of players at each step.
-    It would not be the case if we took just the sum of the list of votes (for example).
-    We finally store in a csv file the result.
+    Compute a score for each tuple of different words. We take the score to be the minimum of voters
+    for each step of the crowd algorithm. It is a fair metric as a big score attest the path makes intervene 
+    a lot of players at each step. It would not be the case if we took just the sum of the list of votes (for example). 
+    We finally store the result in a csv file.
+
+    Args:
+        finished_paths_df : dataframe containing every successful paths played
+
+    Returns:
+        None
     """
 
     words = set()
@@ -108,8 +188,14 @@ def compute_scores(finished_paths_df):
 
 def stats_players_crowd(finished_paths_df):
     """
-    We compute the scores achieved by the crowd vs scores achieved by individual players.
+    Compute the scores achieved by the crowd & scores achieved by individual players.
     Result is stored in a csv file.
+
+    Args:
+        finished_paths_df : dataframe containing every successful paths played
+    
+    Returns:
+        None
     """
     games_to_play = pd.read_csv("./data/crowd_paths.csv")
 
