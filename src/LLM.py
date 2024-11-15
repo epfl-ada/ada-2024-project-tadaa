@@ -3,16 +3,32 @@ from urllib.parse import unquote
 from unsloth import FastLanguageModel
 import json
 import torch
+import pandas as pd
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+import numpy as np
+import src.utils as utils
 
 
 def llm_paths(sources, targets, links):
+    """This function generates paths from each source to target pairwise in the lists (sources, targets).
+    The generation is made by a large language model.
+
+    Args:
+        sources (list): the list of sources
+        targets (list): the list of destinations
+        links (dict): the links that can be visited from a each article
+
+    Returns:
+        dict: a dictionary containing the paths from each source to target
+    """
     # make links in a readable format not html format
     links = {unquote(key): [unquote(word) for word in value] for key, value in links.items()}
     #choose model
     model_name = "unsloth/Qwen2.5-3B-Instruct-bnb-4bit"
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.backends.cudnn.benchmark = True
     torch.backends.cudnn.deterministic = True
 
@@ -125,6 +141,6 @@ def llm_paths(sources, targets, links):
                 print("Failed", path, target)
 
 
-    with open("llm_responses.json", "w") as f:
+    with open("./data/llm_responses.json", "w") as f:
         json.dump(responses, f)
     return responses
