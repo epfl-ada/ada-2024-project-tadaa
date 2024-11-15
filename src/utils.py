@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import json
 import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+
 
 
 def load_dataframe(file_path: str, columns: list) -> pd.DataFrame:
@@ -139,16 +142,20 @@ def plot_llms_vs_players(sources: list, targets: list, finished_paths_df: pd.Dat
         llm_means.append(llm_mean_length)
         llm_std_errors.append(llm_std_error)
     
-    fig, ax = plt.subplots()
-    ax.errorbar(range(10), player_means, yerr=player_std_errors, fmt="o", label="Player Paths")
-    ax.errorbar(range(10), llm_means, yerr=llm_std_errors, fmt="o", label="LLM Paths")
-    ax.set_xticks(range(10))
-    ax.set_xticklabels([f"{source} -> {target}" for source, target in zip(sources, targets)], rotation=90)  
-    ax.set_ylabel("Path Length")
-    ax.set_xlabel("Source -> Target")
-    plt.title("Player Paths vs LLM mean path length per source-target pair")
-    ax.legend()
-    plt.show()
+    fig = px.scatter(
+        x=[f"{source} -> {target}" for source, target in zip(sources, targets)] * 2,
+        y=player_means + llm_means,
+        error_y=player_std_errors + llm_std_errors,
+        labels={"x": "Source -> Target", "y": "Path Length"},
+        title="Player Paths vs LLM mean path length per source-target pair",
+        color=["Player Paths"] * len(player_means) + ["LLM Paths"] * len(llm_means)
+    )
+    fig.update_layout(
+        xaxis=dict(tickmode='array', tickvals=list(range(len(sources))), ticktext=[f"{source} -> {target}" for source, target in zip(sources, targets)]),
+        xaxis_title="Source -> Target",
+        yaxis_title="Path Length"
+    )
+    fig.show()
 
 
 def tstats_pvalues(sources: list, targets: list, finished_paths_df: pd.DataFrame, llm_paths: dict):
@@ -176,3 +183,93 @@ def tstats_pvalues(sources: list, targets: list, finished_paths_df: pd.DataFrame
         p_values.append(p_value)  
         t_critical.append(stats.t.ppf(1-0.05/2, len(player_paths["path_length"]) + len(llm_source_target) - 2))
     return t_stats, p_values, t_critical
+
+
+def plot_tsatistics(sources: list, targets: list, t_stats: list, p_values: list, t_critical: list):
+    """plot t-statistics and p-values"""
+    fig = go.Figure()
+
+    # Add Bar and Scatter traces
+    traces = [
+        go.Bar(x=[f"{source} -> {target}" for source, target in zip(sources, targets)], y=t_stats, name='T-Statistics'),
+        go.Scatter(x=[f"{source} -> {target}" for source, target in zip(sources, targets)], y=t_critical, mode='lines', name='Critical Value', line=dict(dash='dash', color='red'))
+    ]
+    for trace in traces:
+        fig.add_trace(trace)
+
+    # Add p-value texts
+    for i, p_value in enumerate(p_values):
+        fig.add_trace(go.Scatter(
+            x=[f"{sources[i]} -> {targets[i]}"],
+            y=[t_stats[i]],
+            mode='text',
+            text=[f"p-value:\n {p_value:.1e}"],
+            textposition='top center',
+            showlegend=False
+        ))
+
+    # Update layout
+    fig.update_layout(
+        xaxis=dict(tickmode='array', tickvals=list(range(10)), ticktext=[f"{source} -> {target}" for source, target in zip(sources, targets)], tickangle=45),
+        yaxis=dict(title='T-Statistic', range=[0, 35]),
+        title='T-Statistics for Player Paths vs LLM Paths with corresponding p-values',
+    )
+
+    fig.show()
+
+def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_df: pd.DataFrame, llm_paths: dict, ranks: dict):
+    """plot the mean ranks for players against LLMs paths for each source-target pair for the most common path length"""
+    llm_vs_players_ranks = []
+    for idx, (source, target) in enumerate(zip(sources, targets)):
+        player_paths = finished_paths_df[(finished_paths_df["source"] == source) & (finished_paths_df["target"] == target)]
+        
+        most_common_length = player_paths["path_length"].mode().values[0]
+        paths_with_most_common_length = player_paths[player_paths["path_length"] == most_common_length]
+
+        mean_ranks = []
+        for i in range(most_common_length + 1):
+            rank_i = 0
+            for path in paths_with_most_common_length["clean_path"]:
+                rank_i += ranks[path[i]]
+            rank_i /= len(paths_with_most_common_length)
+            mean_ranks.append(rank_i)
+
+        llm_paths_source_target = llm_paths[source + "_" + target]
+        most_common_llm_path_length = max([len(path) for path in llm_paths_source_target])
+        mean_ranks_llm = []
+        for i in range(most_common_llm_path_length):
+            rank_i = 0
+            for path in llm_paths_source_target:
+                if len(path) > i:
+                    if path[i] not in ranks:
+                        continue
+                    rank_i += ranks[path[i]]
+            rank_i /= len(llm_paths_source_target)
+            mean_ranks_llm.append(rank_i)
+        llm_vs_players_ranks.append({"source": source, "target": target, "player_ranks": mean_ranks, "llm_ranks": mean_ranks_llm})
+    for ranks in llm_vs_players_ranks:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=list(range(len(ranks["player_ranks"]))),
+            y=ranks["player_ranks"],
+            mode='lines+markers',
+            name='Player Ranks',
+            line=dict(color='blue')
+        ))
+        fig.add_trace(go.Scatter(
+            x=list(range(len(ranks["llm_ranks"]))),
+            y=ranks["llm_ranks"],
+            mode='lines+markers',
+            name='LLM Ranks',
+            line=dict(color='red')
+        ))
+        fig.update_layout(
+            xaxis_title="Step",
+            yaxis_title="Mean Rank",
+            legend_title="Legend"
+        )
+
+        fig.show()
+
+
+
