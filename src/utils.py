@@ -3,6 +3,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from scipy import stats
 import json
+import numpy as np
 
 
 def load_dataframe(file_path: str, columns: list) -> pd.DataFrame:
