@@ -1,15 +1,10 @@
-
+# This code requires a CUDA envirement to run. 
 from urllib.parse import unquote
-from unsloth import FastLanguageModel
 import json
 import torch
-import pandas as pd
+from tqdm import tqdm
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy import stats
-import numpy as np
-import src.utils as utils
 
 
 def llm_paths(sources, targets, links):
@@ -33,8 +28,8 @@ def llm_paths(sources, targets, links):
     torch.backends.cudnn.deterministic = True
 
     #load model
-    model, tokenizer = FastLanguageModel.from_pretrained(model_name)
-    FastLanguageModel.for_inference(model)
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     #set initial message
     messages = [
@@ -44,12 +39,11 @@ def llm_paths(sources, targets, links):
     # sources = ['Asteroid', 'Brain', 'Theatre', 'Pyramid', 'Batman', 'Bird', 'Batman', 'Bird', 'Beer', 'Batman']
     # targets = ['Viking', 'Telephone', 'Zebra', 'Bean', 'Wood', 'Great_white_shark', 'The_Holocaust', 'Adolf_Hitler', 'Sun', 'Banana']
     responses = {}
-    for source, target in zip(sources, targets):
+    for source, target in tqdm(zip(sources, targets)):
         # run 100 times for each source target pair
-        for i in range(100):
+        for i in tqdm(range(100)):
 
             new_source = source
-            print(source)
             path = []
             count = 0
             path.append(new_source)
@@ -144,3 +138,5 @@ def llm_paths(sources, targets, links):
     with open("./data/llm_responses.json", "w") as f:
         json.dump(responses, f)
     return responses
+
+
