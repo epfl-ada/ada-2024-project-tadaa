@@ -9,3 +9,4 @@ selenium==4.26.1
 torch==2.5.1
 tqdm==4.66.1
 transformers==4.46.2
+nbformat==5.10.4
