@@ -29,7 +29,7 @@ Also, It's important to clarify that extrapolating the advice found on Wikispeed
 
 ## Additional data
 
-- **Generated Paths by Qwen 3B**
+- **Generated Paths by Qwen-3B**
   We generated paths for the 10 most played source-target pairs in order to compare LLM performance to human players performance. We discuss the generation strategy in the following section.
 
 ## Project plans & Methods
@@ -52,11 +52,11 @@ For each source-target pair, we make the model play 100 games in order to get st
 
 Our idea is to start a game with a given source `src` and target `dst` that might not have been played before. We then exploit all the data of the previous games. To choose the second page to click on, we aggregate all the paths that either have source `src` and destination `dst`, or those that go through `src` and have target `dst`. This way, we have the next page each player chose after `src`. We select our next page using majority voting. We repeat this operation until we reach `dst` (we call this procedure the crowd algorithm). For Condorcet's jury theorem to apply, we need to maximise the number of voters at each step. To do this, we chose paths that maximize 'voter scores'. We call the voter score of a path the minimum number of voters encountered by the crowd algorithm. (ie: at each step of the path, we guarantee a certain number of voters)
 
-We run this algorithm on each (`src`, `dst`) tuple with a voter score > 50 and compare the results with what the real players obtained on average for the same (`src`, `dst`) tuple.
+We run this algorithm on each (`src`, `dst`) tuple with a voter score > 50 and compare the results with what the real players obtained on average for the same (`src`,`dst`) tuple.
 
 ## Other explorations that didn't yield
 
-We studied in depth the change of the paths specificities (Hubs categories, most visited articles...) over the time. We wanted to see if big events (ex: World Cup) affected the way players thought and found out it was not the case. We also studied what the characteristics of the graph are in order to cluster it and find the categories that would constitute a "joker" shortcut from any article to another. These ideas did not give fruitful results.
+We studied in depth the change of the paths specificities (Hubs, most visited articles...) over the time. We wanted to see if big events (ex: World Cup) affected the way players thought and found out it was not the case. We also studied what the characteristics of the graph are in order to cluster it and find the categories that would constitute a "joker" shortcut from any article to another. These ideas did not give fruitful results.
 
 ## Proposed timeline
 
