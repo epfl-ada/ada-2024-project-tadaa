@@ -175,10 +175,10 @@ def compute_scores(finished_paths_df):
     for p in finished_paths_df["path"]:
         occ_all += Counter(p)
     
-    popular_words = popular_words(occ_all)
+    popular_words_ = popular_words(occ_all)
 
     # We compute all the scores for the most promising games
-    scores = voter_score(finished_paths_df, popular_words)
+    scores = voter_score(finished_paths_df, popular_words_)
 
     df = pd.DataFrame(games_to_play(scores), columns=["src_dst", "score"])
     df[["src", "dst"]] = pd.DataFrame(df["src_dst"].tolist(), index=df.index)

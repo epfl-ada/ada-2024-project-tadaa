@@ -170,7 +170,6 @@ def tstats_pvalues(sources: list, targets: list, finished_paths_df: pd.DataFrame
     # Compute t-statistics and p-values to compare players and LLM paths
     t_stats = []
     p_values = []
-    t_critical = []
     for source, target in zip(sources, targets):
         player_paths = finished_paths_df[(finished_paths_df["source"] == source) & (finished_paths_df["target"] == target)]
         llm_source_target = llm_paths[source+"_"+target]
@@ -179,36 +178,34 @@ def tstats_pvalues(sources: list, targets: list, finished_paths_df: pd.DataFrame
         player_lengths = player_paths["path_length"] + np.random.normal(0, 1e-10, len(player_paths))
         llm_lengths = [len(path) for path in llm_source_target] + np.random.normal(0, 1e-10, len(llm_source_target))
         
-        t_stat, p_value = stats.ttest_ind(player_lengths, llm_lengths)
+        t_stat, p_value = stats.ttest_ind(llm_lengths, player_lengths, alternative='less')
         t_stats.append(abs(t_stat))
         p_values.append(p_value)  
-        t_critical.append(stats.t.ppf(1-0.05/2, len(player_paths["path_length"]) + len(llm_source_target) - 2))
-    return t_stats, p_values, t_critical
+    return p_values
 
 
-def plot_tsatistics(sources: list, targets: list, t_stats: list, p_values: list, t_critical: list):
+def plot_tsatistics(sources: list, targets: list,p_values: list):
     """plot t-statistics and p-values"""
     fig = go.Figure()
-    traces = [
-        go.Bar(x=[f"{source} -> {target}" for source, target in zip(sources, targets)], y=t_stats, name='T-Statistics'),
-        go.Scatter(x=[f"{source} -> {target}" for source, target in zip(sources, targets)], y=t_critical, mode='lines', name='Critical Value', line=dict(dash='dash', color='red'))
-    ]
-    for trace in traces:
-        fig.add_trace(trace)
-    for i, p_value in enumerate(p_values):
-        fig.add_trace(go.Scatter(
-            x=[f"{sources[i]} -> {targets[i]}"],
-            y=[t_stats[i]],
-            mode='text',
-            text=[f"p-value: {p_value: .1e}"],
-            textposition='top center',
-            showlegend=False
-        ))
+    for i, source, target in zip(range(len(sources)), sources, targets):
+        fig.add_trace(go.Bar(
+            x=[f"{source} -> {target}"],
+            y=[p_values[i]],
+            name='p-values',
+            showlegend=False,
+            marker=dict(color='green')
+        )
+    )
 
     fig.update_layout(
-        xaxis=dict(tickmode='array', tickvals=list(range(10)), ticktext=[f"{source} -> {target}" for source, target in zip(sources, targets)], tickangle=45),
-        yaxis=dict(title='T-Statistic', range=[0, 35]),
-        title='T-Statistics for Player Paths vs LLM Paths with corresponding p-values',
+        xaxis=dict(
+            tickmode='array',
+            tickvals=list(range(10)), 
+            ticktext=[f"{source} -> {target}" for source, target in zip(sources, targets)],
+            tickangle=45
+        ),
+        yaxis_title='p-values',
+        title='p-values for Player Paths vs LLM Paths with corresponding p-values',
         height=600,
     )
 
