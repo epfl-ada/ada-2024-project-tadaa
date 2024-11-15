@@ -3,7 +3,7 @@
   <img src="data/tadaa_meme.jpg">
 </div>
 
-NB: You need to download the results.ipynb notebook in order to display the plots as they are made with plotly.
+NB: You need to clone the project and access the results.ipynb notebook in order to display the plots as they are made with plotly.
 
 ## Abstract
 
