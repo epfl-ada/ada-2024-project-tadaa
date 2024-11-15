@@ -66,7 +66,7 @@ We studied in depth the change of the paths specificities (Hubs, most visited ar
 13.12.2023: Finalize visualizations and start writing the data story <br>
 20.12.2023: Clean the repository and finalize the data story webpage <br>
 
-## Organization within the team
+## Team organization 
 
 Task 1: Lysandre Costes <br>
 Task 2: Hassen Aissa - Yasmine Chaker <br>
