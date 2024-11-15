@@ -9,7 +9,7 @@ NB: You need to clone the project and access the results.ipynb notebook in order
 
 <!-- 164 words -->
 
-In Wikispeedia, players move from a source to a target article with minimal clicks—similar to how we pursue life goals, seeking the most efficient path. Our project draws three key lessons from these games for making better decisions.
+In Wikispeedia, players move from a source to a target article with minimal clicks—similar to how we pursue life goals, seeking most efficient path. Our project draws three key lessons from these games for making better decisions.
 
 First, we observe that players who skimmed through pages often missed critical information, impacting their success. This reflects a tendency to rely on surface-level data, highlithing that thorough research and examining all available information often lead to better outcomes.
 
@@ -35,12 +35,12 @@ NB: When we talk about performance in this project, we consider the shortness of
 
 ## Project plans & Methods
 
-### Task 1: Analyse page position of clicked links
+### Task-1: Analyse page position of clicked links
 
 We obtain the x and y coordinates of the links by using Selenium. It enables us to open the html file of the articles in a simulated browser and then select the links we are interested in. We set the window size of the browser to 1920x1080 because it is the most common. When the next article in path is accessible via several links, we select the coordinates of all these links.
 We run this algorithm on each path of the 50 most popular source-target peers and compare the results between the optimal paths, those of people who didn't finish the game and those of people who did.
 
-### Task 2: Analyse LLM performance in Wikispeedia
+### Task-2: Analyse LLM performance in Wikispeedia
 
 We use Qwen3b-4-bit-quantized as it fits in our GPU resources and it gives good results. We start by doing prompt engineering in order to get the model to understand the task.
 If the word returned is not in the list we keep the conversation context with the model and send this new request asking it to correct itself. <br>
@@ -49,7 +49,7 @@ We only allow the model to run for 50 steps after which we consider the path as 
 
 For each source-target pair, we make the model play 100 games in order to get statistically relevant paths that will allow us to make meaningful comparison to the human players paths.
 
-### Task 3: Analyse crowd performance vs average performance
+### Task-3: Analyse crowd performance vs average performance
 
 Our idea is to start a game with a given source `src` and target `dst` that might not have been played before. We then exploit all the data of the previous games. To choose the second page to click on, we aggregate all the paths that either have source `src` and destination `dst`, or those that go through `src` and have target `dst`. This way, we have the next page each player chose after `src`. We select our next page using majority voting. We repeat this operation until we reach `dst` (we call this procedure the crowd algorithm). For Condorcet's jury theorem to apply, we need to maximise the number of voters at each step. To do this, we chose paths that maximize 'voter scores'. We call the voter score of a path the minimum number of voters encountered by the crowd algorithm. (ie: at each step of the path, we guarantee a certain number of voters)
 
