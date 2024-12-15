@@ -158,6 +158,71 @@ def plot_llms_vs_players(sources: list, targets: list, finished_paths_df: pd.Dat
     )
     fig.show()
 
+def plot_llm_vs_llm(sources: list, targets: list, llm1_paths: dict, llm2_paths: dict, model1_name: str, model2_name: str):
+    """plots the means and std errors of the path lengths for two LLMs 
+
+        sources (list): sources list
+        targets (list): targets list
+        llm1_paths (dict): the first LLM generated paths for each source-target pair
+        llm2_paths (dict): the second LLM generated paths for each source-target pair
+    """
+    llm1_means = []
+    llm1_std_errors = []
+    llm2_means = []
+    llm2_std_errors = []
+
+    for source, target in zip(sources, targets):
+        #compute llm1 paths length means
+        llm1_source_target = llm1_paths[source+"_"+target]
+        llm1_mean_length = 0
+        for path in llm1_source_target:
+            llm1_mean_length += len(path)
+        llm1_mean_length = llm1_mean_length / len(llm1_source_target) if len(llm1_source_target) != 0 else 0
+        #compute llm1 paths length standard errors
+        llm1_std_error = 0
+        for path in llm1_source_target:
+            llm1_std_error += (len(path) - llm1_mean_length)**2
+        llm1_std_error = llm1_std_error / len(llm1_source_target) if len(llm1_source_target) != 0 else 0
+        llm1_std_error = llm1_std_error**0.5
+
+        llm1_means.append(llm1_mean_length)
+        llm1_std_errors.append(llm1_std_error)
+        
+        #compute llm paths length means 
+        llm2_source_target = llm2_paths[source+"_"+target]
+        llm2_mean_length = 0
+        for path in llm2_source_target:
+            llm2_mean_length += len(path)
+        llm2_mean_length = llm2_mean_length / len(llm2_source_target) if len(llm2_source_target) != 0 else 0
+
+        #compute llm paths length standard errors
+        llm2_std_error = 0
+        for path in llm2_source_target:
+            llm2_std_error += (len(path) - llm2_mean_length)**2
+        llm2_std_error = llm2_std_error / len(llm2_source_target) if len(llm2_source_target) != 0 else 0
+        llm2_std_error = llm2_std_error**0.5
+
+        llm2_means.append(llm2_mean_length)
+        llm2_std_errors.append(llm2_std_error)
+    
+    fig = px.scatter(
+        x=[f"{source} -> {target}" for source, target in zip(sources, targets)] * 2,
+        y= llm1_means + llm2_means,
+        error_y= llm1_std_errors + llm2_std_errors,
+        labels={"x": "Source -> Target", "y": "Path Length"},
+        title= model1_name +" VS " + model2_name + " mean path length per source-target pair",
+        color=[model1_name] * len(llm1_means) + [model2_name] * len(llm2_means)
+    )
+    fig.update_layout(
+        xaxis=dict(tickmode='array', tickvals=list(range(len(sources))), ticktext=[f"{source} -> {target}" for source, target in zip(sources, targets)]),
+        xaxis_title="Source -> Target",
+        yaxis_title="Path Length",
+        height=600
+    )
+    fig.show()
+
+
+
 
 def tstats_pvalues(sources: list, targets: list, finished_paths_df: pd.DataFrame, llm_paths: dict):
     """Compute t-statistics and p-values to compare players and LLM paths
@@ -258,6 +323,7 @@ def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_
             line=dict(color='red')
         ))
         fig.update_layout(
+            title=f"Source: {ranks['source']} | Target: {ranks['target']}",
             xaxis_title="Step",
             yaxis_title="Mean Rank",
             legend_title="Legend"
