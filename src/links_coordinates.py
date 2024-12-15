@@ -81,6 +81,47 @@ def get_path_links_coordinates(browser, articles, cache):
     
     return path_links_coords
 
+def get_path_links_coordinates2(browser, articles, cache):
+    """
+    Get the coordinates of the links between articles in the path.
+
+    Args:
+        browser: selenium webdriver used to simulate the browser
+        articles: list of articles in the path
+        cache: dictionary to store the coordinates of the links between articles
+    
+    Returns:
+        A list of coordinates of the links between articles in the path
+    """
+    path_links_coords = []
+    for i in range(len(articles) - 1):
+        cur_article = articles[i]
+        next_article = articles[i+1]
+        if cur_article == "<":
+            continue
+        if cur_article in cache and next_article in cache[cur_article]:
+            path_links_coords.append(cache[cur_article][next_article])
+            print("Cache hit for {} -> {}".format(cur_article, next_article))
+            continue
+        
+        local_html_file = get_article_html_path(cur_article)
+
+        print("Opening file: ", local_html_file)
+        browser.get("file:///" + local_html_file)
+        
+        next_url = "../../wp/{}/{}.htm".format(next_article[0].lower(), next_article)
+
+        links = browser.find_elements(By.XPATH, "//a[@href=\"{}\"]".format(next_url))
+        links_coords = [(link.location["x"], link.location["y"]) for link in links] # if many links are found we take all their coordinates
+
+        if cache.get(cur_article) is None:
+            cache[cur_article] = {}
+        cache[cur_article][next_article] = links_coords
+
+        path_links_coords.append(links_coords)
+    
+    return path_links_coords
+
 
 if __name__ == "__main__":
     finished_paths = pd.read_csv("data/clean_data/clean_finished_paths.csv")
