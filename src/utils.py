@@ -269,7 +269,7 @@ def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_
         fig.show()
 
 
-def compare_llms_and_prompts(compare_path_performance, multiply_metrics):
+def compare_llms_and_prompts():
     """Compare the performance of two different LLMs with two different prompts"""
 
     with open("data/llm_responses_llama_simple_prompt.json", "r") as f:
@@ -286,121 +286,90 @@ def compare_llms_and_prompts(compare_path_performance, multiply_metrics):
     llm_paths_llama_simple_prompt_performance = {}
     llm_paths_qwen_simple_prompt_performance = {}
 
-
-    if compare_path_performance or multiply_metrics:
-        # Compute the path length performance of the LLMs
-        for key in llm_paths_qwen_detail_prompt:
-            llm_paths_qwen_detail_prompt_performance[key] = [len(path) for path in llm_paths_qwen_detail_prompt.get(key, [])]
-            llm_paths_llama_detail_prompt_performance[key] = [len(path) for path in llm_paths_llama_detail_prompt.get(key, [])]
-            llm_paths_qwen_simple_prompt_performance[key] = [len(path) for path in llm_paths_qwen_simple_prompt.get(key, [])]
-            llm_paths_llama_simple_prompt_performance[key] = [len(path) for path in llm_paths_llama_simple_prompt.get(key, [])]
-        if multiply_metrics:
-            # Compute the performance score of the LLMs (success frequency / Paths performance)
-            for key in llm_paths_qwen_detail_prompt_performance:
-                simple_qwen_frac = len(llm_paths_qwen_simple_prompt_performance[key])/100
-                simple_llama_frac = len(llm_paths_llama_simple_prompt_performance[key])/100
-                detail_qwen_frac = len(llm_paths_qwen_detail_prompt_performance[key])/30
-                detail_llama_frac = len(llm_paths_llama_detail_prompt_performance[key])/30
-                llm_paths_qwen_detail_prompt_performance[key] = [1/path_length*(detail_qwen_frac) for path_length in llm_paths_qwen_detail_prompt_performance[key]] 
-                llm_paths_llama_detail_prompt_performance[key] = [1/path_length*(detail_llama_frac) for path_length in llm_paths_llama_detail_prompt_performance[key]]  
-                llm_paths_qwen_simple_prompt_performance[key] = [1/path_length*(simple_qwen_frac) for path_length in llm_paths_qwen_simple_prompt_performance[key]] 
-                llm_paths_llama_simple_prompt_performance[key] = [1/path_length*(simple_llama_frac) for path_length in llm_paths_llama_simple_prompt_performance[key]] 
-    else:
-        # Compute the success frequency of the LLMs
-        for key in llm_paths_qwen_detail_prompt:
-            llm_paths_qwen_detail_prompt_performance[key] = len(llm_paths_qwen_detail_prompt.get(key, []))/30
-            llm_paths_llama_detail_prompt_performance[key] = len(llm_paths_llama_detail_prompt.get(key, []))/30
-            llm_paths_qwen_simple_prompt_performance[key] = len(llm_paths_qwen_simple_prompt.get(key, []))/100
-            llm_paths_llama_simple_prompt_performance[key] = len(llm_paths_llama_simple_prompt.get(key, []))/100
+    for key in llm_paths_qwen_simple_prompt:
+        simple_qwen_frac = len(llm_paths_qwen_simple_prompt.get(key,[]))/100
+        simple_llama_frac = len(llm_paths_llama_simple_prompt.get(key,[]))/100
+        detail_qwen_frac = len(llm_paths_qwen_detail_prompt.get(key,[]))/30
+        detail_llama_frac = len(llm_paths_llama_detail_prompt.get(key,[]))/30
+        llm_paths_qwen_detail_prompt_performance[key] = [detail_qwen_frac/len(path) for path in llm_paths_qwen_detail_prompt.get(key, [])]
+        llm_paths_llama_detail_prompt_performance[key] = [detail_llama_frac/len(path) for path in llm_paths_llama_detail_prompt.get(key, [])]
+        llm_paths_qwen_simple_prompt_performance[key] = [simple_qwen_frac/len(path) for path in llm_paths_qwen_simple_prompt.get(key, [])]
+        llm_paths_llama_simple_prompt_performance[key] = [simple_llama_frac/len(path) for path in llm_paths_llama_simple_prompt.get(key, [])]
 
     fig = go.Figure()
-
+    def check_empty(paths_list):
+        if len(paths_list) > 0:
+            return np.mean(paths_list), np.std(paths_list)
+        else:
+            return 0, 0
     for i, key in enumerate(llm_paths_qwen_detail_prompt_performance):
-        if llm_paths_qwen_detail_prompt_performance[key]:
-            qwen_detail_mean = np.mean(llm_paths_qwen_detail_prompt_performance[key])
-            qwen_detail_std = np.std(llm_paths_qwen_detail_prompt_performance[key])
-        else:
-            qwen_detail_mean = 0
-            qwen_detail_std = 0
-
-        if llm_paths_llama_detail_prompt_performance[key]:
-            llama_detail_mean = np.mean(llm_paths_llama_detail_prompt_performance[key])
-            llama_detail_std = np.std(llm_paths_llama_detail_prompt_performance[key])
-        else:
-            llama_detail_mean = 0
-            llama_detail_std = 0
-
-        if llm_paths_qwen_simple_prompt_performance[key]:
-            qwen_simple_mean = np.mean(llm_paths_qwen_simple_prompt_performance[key])
-            qwen_simple_std = np.std(llm_paths_qwen_simple_prompt_performance[key])
-        else:
-            qwen_simple_mean = 0
-            qwen_simple_std = 0
-
-        if llm_paths_llama_simple_prompt_performance[key]:
-            llama_simple_mean = np.mean(llm_paths_llama_simple_prompt_performance[key])
-            llama_simple_std = np.std(llm_paths_llama_simple_prompt_performance[key])
-        else:
-            llama_simple_mean = 0
-            llama_simple_std = 0
-
+        qwen_detail_mean, qwen_detail_std = check_empty(llm_paths_qwen_detail_prompt_performance[key])
+        llama_detail_mean, llama_detail_std = check_empty(llm_paths_llama_detail_prompt_performance[key])
+        qwen_simple_mean, qwen_simple_std = check_empty(llm_paths_qwen_simple_prompt_performance[key])
+        llama_simple_mean, llama_simple_std = check_empty(llm_paths_llama_simple_prompt_performance[key])
+                                                
         fig.add_trace(go.Bar(
-            x=[i - 0.3],
+            x=[key],
             y=[qwen_detail_mean],
             error_y=dict(type='data', array=[qwen_detail_std]),
             name='Qwen Detail Prompt',
             marker=dict(color='blue'),
-            width=0.2
+            width=0.2,
+            offsetgroup=0,
+            showlegend=(i == 0)  
+
         ))
 
         fig.add_trace(go.Bar(
-            x=[i - 0.1],
+            x=[key],
             y=[llama_detail_mean],
             error_y=dict(type='data', array=[llama_detail_std]),
             name='Llama Detail Prompt',
             marker=dict(color='red'),
-            width=0.2
+            width=0.2,
+            offsetgroup=1,
+            showlegend=(i == 0)  
+
         ))
 
         fig.add_trace(go.Bar(
-            x=[i + 0.1],
+            x=[key],
             y=[qwen_simple_mean],
             error_y=dict(type='data', array=[qwen_simple_std]),
             name='Qwen Simple Prompt',
             marker=dict(color='green'),
-            width=0.2
+            width=0.2,
+            offsetgroup=2,
+            showlegend=(i == 0)  
+
         ))
 
         fig.add_trace(go.Bar(
-            x=[i + 0.3],
+            x=[key],
             y=[llama_simple_mean],
             error_y=dict(type='data', array=[llama_simple_std]),
             name='Llama Simple Prompt',
             marker=dict(color='orange'),
-            width=0.2
+            width=0.2,
+            offsetgroup=3,
+            showlegend=(i == 0) 
         ))
-        fig.update_traces(showlegend=False)
-        fig.data[0].showlegend = True
-        fig.data[0].name = 'Qwen Detailed Prompt'
-        fig.data[1].showlegend = True
-        fig.data[1].name = 'Llama Detailed Prompt'
-        fig.data[2].showlegend = True
-        fig.data[2].name = 'Qwen Simple Prompt'
-        fig.data[3].showlegend = True
-        fig.data[3].name = 'Llama Simple Prompt'
-    fig.update_layout(
-        barmode='group',
-        xaxis=dict(
-            tickmode='array',
-            tickvals=list(range(len(llm_paths_qwen_detail_prompt_performance))),
-            ticktext=list(llm_paths_qwen_detail_prompt_performance.keys())
-        ),
-        xaxis_title='Source -> Target',
-        yaxis_title='Performance Score',
-        title='Comparison of LLM Performance Score with Different Prompts and Models',
-        height=600,
-        bargap=0.15
-    )
+
+        fig.update_layout(
+            barmode='group',
+            xaxis_title='Source -> Target',
+            yaxis_title='Performance Score',
+            title='Comparison of LLM Performance Score with Different Prompts and Models',
+            height=700,
+            width=1000,
+            legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=-0.5,
+                xanchor="center",
+                x=0.5
+            )
+        )
 
     fig.show()
 
