@@ -104,7 +104,7 @@ def path_length(list):
     return len(clean_path(list)) - 1
 
 def plot_llms_vs_players(sources: list, targets: list, finished_paths_df: pd.DataFrame, llm_paths: dict):
-    """plots the means and std errors of the path lengths for humans players and LLMs 
+    """plots the means and std errors of the path performance for humans players and LLMs 
 
         sources (list): sources list
         targets (list): targets list
@@ -159,7 +159,7 @@ def plot_llms_vs_players(sources: list, targets: list, finished_paths_df: pd.Dat
     fig.show()
 
 def plot_llm_vs_llm(sources: list, targets: list, llm1_paths: dict, llm2_paths: dict, model1_name: str, model2_name: str):
-    """plots the means and std errors of the path lengths for two LLMs 
+    """plots the means and std errors of the path performance for two LLMs 
 
         sources (list): sources list
         targets (list): targets list
@@ -240,10 +240,10 @@ def tstats_pvalues(sources: list, targets: list, finished_paths_df: pd.DataFrame
         llm_source_target = llm_paths[source+"_"+target]
         
         # Add small noise to avoid identical values
-        player_lengths = player_paths["path_length"] + np.random.normal(0, 1e-10, len(player_paths))
-        llm_lengths = [len(path) for path in llm_source_target] + np.random.normal(0, 1e-10, len(llm_source_target))
+        player_performance = player_paths["path_length"] + np.random.normal(0, 1e-10, len(player_paths))
+        llm_performance = [len(path) for path in llm_source_target] + np.random.normal(0, 1e-10, len(llm_source_target))
         
-        t_stat, p_value = stats.ttest_ind(llm_lengths, player_lengths, alternative='less')
+        t_stat, p_value = stats.ttest_ind(llm_performance, player_performance, alternative='less')
         t_stats.append(abs(t_stat))
         p_values.append(p_value)  
     return p_values
@@ -332,7 +332,7 @@ def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_
         fig.show()
 
 
-def compare_llms_and_prompts(compare_path_lengths, multiply_metrics):
+def compare_llms_and_prompts(compare_path_performance, multiply_metrics):
     with open("data/llm_responses_llama_simple_prompt.json", "r") as f:
         llm_paths_llama_simple_prompt = json.load(f)
     with open("data/llm_responses_qwen_simple_prompt.json", "r") as f:
@@ -342,62 +342,62 @@ def compare_llms_and_prompts(compare_path_lengths, multiply_metrics):
     with open("data/llm_responses_llama_detailed_prompt.json", "r") as f:     
         llm_paths_llama_detail_prompt = json.load(f)
 
-    llm_paths_llama_detail_prompt_lengths = {}
-    llm_paths_qwen_detail_prompt_lengths = {}
-    llm_paths_llama_simple_prompt_lengths = {}
-    llm_paths_qwen_simple_prompt_lengths = {}
+    llm_paths_llama_detail_prompt_performance = {}
+    llm_paths_qwen_detail_prompt_performance = {}
+    llm_paths_llama_simple_prompt_performance = {}
+    llm_paths_qwen_simple_prompt_performance = {}
 
 
-    if compare_path_lengths or multiply_metrics:
+    if compare_path_performance or multiply_metrics:
         for key in llm_paths_qwen_detail_prompt:
-            llm_paths_qwen_detail_prompt_lengths[key] = [len(path) for path in llm_paths_qwen_detail_prompt.get(key, [])]
-            llm_paths_llama_detail_prompt_lengths[key] = [len(path) for path in llm_paths_llama_detail_prompt.get(key, [])]
-            llm_paths_qwen_simple_prompt_lengths[key] = [len(path) for path in llm_paths_qwen_simple_prompt.get(key, [])]
-            llm_paths_llama_simple_prompt_lengths[key] = [len(path) for path in llm_paths_llama_simple_prompt.get(key, [])]
+            llm_paths_qwen_detail_prompt_performance[key] = [len(path) for path in llm_paths_qwen_detail_prompt.get(key, [])]
+            llm_paths_llama_detail_prompt_performance[key] = [len(path) for path in llm_paths_llama_detail_prompt.get(key, [])]
+            llm_paths_qwen_simple_prompt_performance[key] = [len(path) for path in llm_paths_qwen_simple_prompt.get(key, [])]
+            llm_paths_llama_simple_prompt_performance[key] = [len(path) for path in llm_paths_llama_simple_prompt.get(key, [])]
         if multiply_metrics:
-            for key in llm_paths_qwen_detail_prompt_lengths:
-                simple_qwen_frac = len(llm_paths_qwen_simple_prompt_lengths[key])/100
-                simple_llama_frac = len(llm_paths_llama_simple_prompt_lengths[key])/30
-                detail_qwen_frac = len(llm_paths_qwen_detail_prompt_lengths[key])/30
-                detail_llama_frac = len(llm_paths_llama_detail_prompt_lengths[key])/30
-                llm_paths_qwen_detail_prompt_lengths[key] = [1/path_length*(detail_qwen_frac) for path_length in llm_paths_qwen_detail_prompt_lengths[key]] 
-                llm_paths_llama_detail_prompt_lengths[key] = [1/path_length*(detail_llama_frac) for path_length in llm_paths_llama_detail_prompt_lengths[key]]  
-                llm_paths_qwen_simple_prompt_lengths[key] = [1/path_length*(simple_qwen_frac) for path_length in llm_paths_qwen_simple_prompt_lengths[key]] 
-                llm_paths_llama_simple_prompt_lengths[key] = [1/path_length*(simple_llama_frac) for path_length in llm_paths_llama_simple_prompt_lengths[key]] 
+            for key in llm_paths_qwen_detail_prompt_performance:
+                simple_qwen_frac = len(llm_paths_qwen_simple_prompt_performance[key])/100
+                simple_llama_frac = len(llm_paths_llama_simple_prompt_performance[key])/100
+                detail_qwen_frac = len(llm_paths_qwen_detail_prompt_performance[key])/30
+                detail_llama_frac = len(llm_paths_llama_detail_prompt_performance[key])/30
+                llm_paths_qwen_detail_prompt_performance[key] = [1/path_length*(detail_qwen_frac) for path_length in llm_paths_qwen_detail_prompt_performance[key]] 
+                llm_paths_llama_detail_prompt_performance[key] = [1/path_length*(detail_llama_frac) for path_length in llm_paths_llama_detail_prompt_performance[key]]  
+                llm_paths_qwen_simple_prompt_performance[key] = [1/path_length*(simple_qwen_frac) for path_length in llm_paths_qwen_simple_prompt_performance[key]] 
+                llm_paths_llama_simple_prompt_performance[key] = [1/path_length*(simple_llama_frac) for path_length in llm_paths_llama_simple_prompt_performance[key]] 
     else:
         for key in llm_paths_qwen_detail_prompt:
-            llm_paths_qwen_detail_prompt_lengths[key] = len(llm_paths_qwen_detail_prompt.get(key, []))/30
-            llm_paths_llama_detail_prompt_lengths[key] = len(llm_paths_llama_detail_prompt.get(key, []))/30
-            llm_paths_qwen_simple_prompt_lengths[key] = len(llm_paths_qwen_simple_prompt.get(key, []))/100
-            llm_paths_llama_simple_prompt_lengths[key] = len(llm_paths_llama_simple_prompt.get(key, []))/30
+            llm_paths_qwen_detail_prompt_performance[key] = len(llm_paths_qwen_detail_prompt.get(key, []))/30
+            llm_paths_llama_detail_prompt_performance[key] = len(llm_paths_llama_detail_prompt.get(key, []))/30
+            llm_paths_qwen_simple_prompt_performance[key] = len(llm_paths_qwen_simple_prompt.get(key, []))/100
+            llm_paths_llama_simple_prompt_performance[key] = len(llm_paths_llama_simple_prompt.get(key, []))/100
 
     fig = go.Figure()
 
-    for i, key in enumerate(llm_paths_qwen_detail_prompt_lengths):
-        if llm_paths_qwen_detail_prompt_lengths[key]:
-            qwen_detail_mean = np.mean(llm_paths_qwen_detail_prompt_lengths[key])
-            qwen_detail_std = np.std(llm_paths_qwen_detail_prompt_lengths[key])
+    for i, key in enumerate(llm_paths_qwen_detail_prompt_performance):
+        if llm_paths_qwen_detail_prompt_performance[key]:
+            qwen_detail_mean = np.mean(llm_paths_qwen_detail_prompt_performance[key])
+            qwen_detail_std = np.std(llm_paths_qwen_detail_prompt_performance[key])
         else:
             qwen_detail_mean = 0
             qwen_detail_std = 0
 
-        if llm_paths_llama_detail_prompt_lengths[key]:
-            llama_detail_mean = np.mean(llm_paths_llama_detail_prompt_lengths[key])
-            llama_detail_std = np.std(llm_paths_llama_detail_prompt_lengths[key])
+        if llm_paths_llama_detail_prompt_performance[key]:
+            llama_detail_mean = np.mean(llm_paths_llama_detail_prompt_performance[key])
+            llama_detail_std = np.std(llm_paths_llama_detail_prompt_performance[key])
         else:
             llama_detail_mean = 0
             llama_detail_std = 0
 
-        if llm_paths_qwen_simple_prompt_lengths[key]:
-            qwen_simple_mean = np.mean(llm_paths_qwen_simple_prompt_lengths[key])
-            qwen_simple_std = np.std(llm_paths_qwen_simple_prompt_lengths[key])
+        if llm_paths_qwen_simple_prompt_performance[key]:
+            qwen_simple_mean = np.mean(llm_paths_qwen_simple_prompt_performance[key])
+            qwen_simple_std = np.std(llm_paths_qwen_simple_prompt_performance[key])
         else:
             qwen_simple_mean = 0
             qwen_simple_std = 0
 
-        if llm_paths_llama_simple_prompt_lengths[key]:
-            llama_simple_mean = np.mean(llm_paths_llama_simple_prompt_lengths[key])
-            llama_simple_std = np.std(llm_paths_llama_simple_prompt_lengths[key])
+        if llm_paths_llama_simple_prompt_performance[key]:
+            llama_simple_mean = np.mean(llm_paths_llama_simple_prompt_performance[key])
+            llama_simple_std = np.std(llm_paths_llama_simple_prompt_performance[key])
         else:
             llama_simple_mean = 0
             llama_simple_std = 0
@@ -450,27 +450,125 @@ def compare_llms_and_prompts(compare_path_lengths, multiply_metrics):
         barmode='group',
         xaxis=dict(
             tickmode='array',
-            tickvals=list(range(len(llm_paths_qwen_detail_prompt_lengths))),
-            ticktext=list(llm_paths_qwen_detail_prompt_lengths.keys())
+            tickvals=list(range(len(llm_paths_qwen_detail_prompt_performance))),
+            ticktext=list(llm_paths_qwen_detail_prompt_performance.keys())
         ),
         xaxis_title='Source -> Target',
-        yaxis_title='Path Length',
-        title='Comparison of LLM (success frequency / Paths Lengths) with Different Prompts and Models',
+        yaxis_title='Performance Score',
+        title='Comparison of LLM (success frequency / Paths performance) with Different Prompts and Models',
         height=600,
         bargap=0.15
     )
 
     fig.show()
 
+def compare_llms_hub():
+    with open("data/llm_responses_qwen_simple_prompt.json", "r") as f:
+        llm_paths_qwen_simple_prompt = json.load(f)
+    with open("data/llm_responses_qwen_simple_hub_prompt.json", "r") as f:
+        llm_paths_qwen_simple_hub_prompt = json.load(f)
+    with open("data/llm_responses_qwen_detailed_hub_prompt.json", "r") as f:
+        llm_paths_qwen_detailed_hub_prompt = json.load(f)
+    
+    llm_paths_qwen_simple_prompt_performance = {}
+    llm_paths_qwen_simple_hub_prompt_performance = {}
+    llm_paths_qwen_detailed_hub_prompt_performance = {}
+
+    for key in llm_paths_qwen_simple_prompt:
+        llm_paths_qwen_simple_prompt_performance[key] = [len(path) for path in llm_paths_qwen_simple_prompt.get(key, [])]
+        llm_paths_qwen_simple_hub_prompt_performance[key] = [len(path) for path in llm_paths_qwen_simple_hub_prompt.get(key, [])]
+        llm_paths_qwen_detailed_hub_prompt_performance[key] = [len(path) for path in llm_paths_qwen_detailed_hub_prompt.get(key, [])]
+        simple_qwen_frac = len(llm_paths_qwen_simple_prompt_performance[key])/100
+        simple_hub_qwen_frac = len(llm_paths_qwen_simple_hub_prompt_performance[key])/30
+        detailed_hub_qwen_frac = len(llm_paths_qwen_detailed_hub_prompt_performance[key])/30
+        llm_paths_qwen_simple_prompt_performance[key] = [1/path_length*(simple_qwen_frac) for path_length in llm_paths_qwen_simple_prompt_performance[key]]
+        llm_paths_qwen_simple_hub_prompt_performance[key] = [1/path_length*(simple_hub_qwen_frac) for path_length in llm_paths_qwen_simple_hub_prompt_performance[key]]
+        llm_paths_qwen_detailed_hub_prompt_performance[key] = [1/path_length*(detailed_hub_qwen_frac) for path_length in llm_paths_qwen_detailed_hub_prompt_performance[key]]
+
+    fig = go.Figure()
+
+    for i, key in enumerate(llm_paths_qwen_simple_prompt_performance):
+        if llm_paths_qwen_simple_prompt_performance[key]:
+            simple_mean = np.mean(llm_paths_qwen_simple_prompt_performance[key])
+            simple_std = np.std(llm_paths_qwen_simple_prompt_performance[key])
+        else:
+            simple_mean = 0
+            simple_std = 0
+
+        if llm_paths_qwen_simple_hub_prompt_performance[key]:
+            simple_hub_mean = np.mean(llm_paths_qwen_simple_hub_prompt_performance[key])
+            simple_hub_std = np.std(llm_paths_qwen_simple_hub_prompt_performance[key])
+        else:
+            simple_hub_mean = 0
+            simple_hub_std = 0
+
+        if llm_paths_qwen_detailed_hub_prompt_performance[key]:
+            detailed_hub_mean = np.mean(llm_paths_qwen_detailed_hub_prompt_performance[key])
+            detailed_hub_std = np.std(llm_paths_qwen_detailed_hub_prompt_performance[key])
+        else:
+            detailed_hub_mean = 0
+            detailed_hub_std = 0
+
+        fig.add_trace(go.Bar(
+            x=[i - 0.2],
+            y=[simple_mean],
+            error_y=dict(type='data', array=[simple_std]),
+            name='Qwen Simple Prompt',
+            marker=dict(color='blue'),
+            width=0.2
+        ))
+
+        fig.add_trace(go.Bar(
+            x=[i],
+            y=[simple_hub_mean],
+            error_y=dict(type='data', array=[simple_hub_std]),
+            name='Qwen Simple Hub Prompt',
+            marker=dict(color='red'),
+            width=0.2
+        ))
+
+        fig.add_trace(go.Bar(
+            x=[i + 0.2],
+            y=[detailed_hub_mean],
+            error_y=dict(type='data', array=[detailed_hub_std]),
+            name='Qwen Detailed Hub Prompt',
+            marker=dict(color='green'),
+            width=0.2
+        ))
+        fig.update_traces(showlegend=False)
+        fig.data[0].showlegend = True
+        fig.data[0].name = 'Qwen Simple Prompt'
+        fig.data[1].showlegend = True
+        fig.data[1].name = 'Qwen Simple Hub Prompt'
+        fig.data[2].showlegend = True
+        fig.data[2].name = 'Qwen Detailed Hub Prompt'
+    fig.update_layout(
+        barmode='group',
+        xaxis=dict(
+            tickmode='array',
+            tickvals=list(range(len(llm_paths_qwen_simple_prompt_performance))),
+            ticktext=list(llm_paths_qwen_simple_prompt_performance.keys())
+        ),
+        xaxis_title='Source -> Target',
+        yaxis_title='Performance Score',
+        title='Comparison of LLM (success frequency / Paths performance) with Different Prompts',
+        height=600,
+        bargap=0.15
+    )
+
+    fig.show()
+
+
+
 def paths_with_most_common_length(original_paths: list):
-    """returns the paths with the most common length"""
+    """Returns the paths with the most common length"""
     most_common_length = pd.Series(original_paths).apply(len).mode().values[0]
     print(most_common_length)
     paths_with_most_common_length = [path for path in original_paths if len(path) == most_common_length]
     return paths_with_most_common_length
 
 def mean_ranks(paths: list, ranks: dict):
-    """returns the mean ranks of the paths"""
+    """Returns the mean ranks of the paths"""
     mean_ranks = []
     print(paths)
     for i in range(len(paths[0])):
@@ -489,8 +587,6 @@ def hub_llms_paths(ranks: dict):
     with open("data/llm_responses_qwen_simple_prompt.json", "r") as f:
         llm_paths_qwen_simple_prompt = json.load(f)
 
-    
-    
     for key in llm_paths_qwen_simple_prompt:
         paths_qwen_simple_prompt = paths_with_most_common_length(llm_paths_qwen_simple_prompt[key])
         paths_qwen_simple_prompt_hub = paths_with_most_common_length(llm_paths_qwen_simple_prompt_hub[key])
@@ -533,28 +629,31 @@ def hub_llms_paths(ranks: dict):
 
 
 
-
 def hub_impact():
-    with open("data/llm_responses_qwen_simple_prompt_hub.json", "r") as f:
+    with open("data/llm_responses_qwen_simple_hub_prompt.json", "r") as f:
         llm_paths_qwen_simple_prompt_hub = json.load(f)
-    with open("data/llm_responses_qwen_detailed_prompt_hub.json", "r") as f:
+    with open("data/llm_responses_qwen_detailed_hub_prompt.json", "r") as f:
         llm_paths_qwen_detail_prompt_hub = json.load(f)
     with open("data/llm_responses_qwen_simple_prompt.json", "r") as f:
         llm_paths_qwen_simple_prompt = json.load(f)
 
-    llm_paths_qwen_simple_prompt_lengths = {}
-    llm_paths_qwen_simple_prompt_hub_lengths = {}
-    llm_paths_qwen_detail_prompt_hub_lengths = {}
+   
+    llm_paths_qwen_simple_prompt_performance = {}
+    llm_paths_qwen_simple_prompt_hub_performance = {}
+    llm_paths_qwen_detail_prompt_hub_performance = {}
 
     for key in llm_paths_qwen_simple_prompt:
-        llm_paths_qwen_simple_prompt_lengths[key] = [len(path) for path in llm_paths_qwen_simple_prompt.get(key, [])]
-        llm_paths_qwen_simple_prompt_hub_lengths[key] = [len(path) for path in llm_paths_qwen_simple_prompt_hub.get(key, [])]
-        llm_paths_qwen_detail_prompt_hub_lengths[key] = [len(path) for path in llm_paths_qwen_detail_prompt_hub.get(key, [])]
+        qwen_simple_frac = len(llm_paths_qwen_simple_prompt[key])/100
+        qwen_simple_hub_frac = len(llm_paths_qwen_simple_prompt_hub[key])/30
+        qwen_detail_hub_frac = len(llm_paths_qwen_detail_prompt_hub[key])/30
+        llm_paths_qwen_simple_prompt_performance[key] = [qwen_simple_frac / len(path) for path in llm_paths_qwen_simple_prompt.get(key, [])]
+        llm_paths_qwen_simple_prompt_hub_performance[key] = [qwen_simple_hub_frac / len(path) for path in llm_paths_qwen_simple_prompt_hub.get(key, [])]
+        llm_paths_qwen_detail_prompt_hub_performance[key] = [qwen_detail_hub_frac / len(path) for path in llm_paths_qwen_detail_prompt_hub.get(key, [])]
 
 
-    llm_paths_qwen_simple_prompt_averages = [sum(llm_paths_qwen_simple_prompt_lengths[key])/len(llm_paths_qwen_simple_prompt_lengths[key]) for key in llm_paths_qwen_simple_prompt_lengths] 
-    llm_paths_qwen_simple_prompt_hub_averages = [sum(llm_paths_qwen_simple_prompt_hub_lengths[key])/len(llm_paths_qwen_simple_prompt_hub_lengths[key]) for key in llm_paths_qwen_simple_prompt_hub_lengths] 
-    llm_paths_qwen_detail_prompt_hub_averages = [sum(llm_paths_qwen_detail_prompt_hub_lengths[key])/len(llm_paths_qwen_detail_prompt_hub_lengths[key]) for key in llm_paths_qwen_detail_prompt_hub_lengths] 
+    llm_paths_qwen_simple_prompt_averages = [sum(llm_paths_qwen_simple_prompt_performance[key])/len(llm_paths_qwen_simple_prompt_performance[key]) for key in llm_paths_qwen_simple_prompt_performance] 
+    llm_paths_qwen_simple_prompt_hub_averages = [sum(llm_paths_qwen_simple_prompt_hub_performance[key])/len(llm_paths_qwen_simple_prompt_hub_performance[key]) for key in llm_paths_qwen_simple_prompt_hub_performance] 
+    llm_paths_qwen_detail_prompt_hub_averages = [sum(llm_paths_qwen_detail_prompt_hub_performance[key])/len(llm_paths_qwen_detail_prompt_hub_performance[key]) for key in llm_paths_qwen_detail_prompt_hub_performance] 
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -594,20 +693,20 @@ def hub_impact():
     fig.update_layout(
         barmode='group',
         xaxis_title='Source -> Target',
-        yaxis_title='Path Length',
-        title='Comparison of LLM Paths with Different Prompts',
+        yaxis_title='Performance Score',
+        title='Comparison of Qwen Performance with Different Prompts',
         height=600,
         bargap=0.15
     )
 
     fig.show()
 
-        
+
 
 def average_ranks_first_step(rank: dict):
     llm_paths_qwen_simple_prompt = read_llm_paths("data/llm_responses_qwen_simple_prompt.json")
-    llm_paths_qwen_detail_prompt_hub = read_llm_paths("data/llm_responses_qwen_detailed_prompt_hub.json")
-    llm_paths_qwen_simple_prompt_hub = read_llm_paths("data/llm_responses_qwen_simple_prompt_hub.json")
+    llm_paths_qwen_detail_prompt_hub = read_llm_paths("data/llm_responses_qwen_detailed_hub_prompt.json")
+    llm_paths_qwen_simple_prompt_hub = read_llm_paths("data/llm_responses_qwen_simple_hub_prompt.json")
 
     average_ranks_first_step_qwen_simple_prompt = []
     average_ranks_first_step_qwen_detail_prompt_hub = []
@@ -628,10 +727,6 @@ def average_ranks_first_step(rank: dict):
             if path[1] not in rank:
                 continue
             average_ranks_first_step_qwen_simple_prompt_hub.append(rank.get(path[1], 0))
-    
-
-
-    
 
     fig = go.Figure()
 
@@ -645,40 +740,65 @@ def average_ranks_first_step(rank: dict):
     ))
 
     fig.add_trace(go.Bar(
-        x=["Qwen Detail Prompt Hub"],
-        y=[np.mean(average_ranks_first_step_qwen_detail_prompt_hub)],
-        error_y=dict(type='data', array=[np.std(average_ranks_first_step_qwen_detail_prompt_hub)]),
-        name='Qwen Detail Prompt Hub',
+        x=["Qwen Simple Prompt Hub"],
+        y=[np.mean(average_ranks_first_step_qwen_simple_prompt_hub)],
+        error_y=dict(type='data', array=[np.std(average_ranks_first_step_qwen_simple_prompt_hub)]),
+        name='Qwen Simple Prompt Hub',
         marker=dict(color='red'),
         width=0.2
     ))
 
     fig.add_trace(go.Bar(
-        x=["Qwen Simple Prompt Hub"],
-        y=[np.mean(average_ranks_first_step_qwen_simple_prompt_hub)],
-        error_y=dict(type='data', array=[np.std(average_ranks_first_step_qwen_simple_prompt_hub)]),
-        name='Qwen Simple Prompt Hub',
+        x=["Qwen Detail Prompt Hub"],
+        y=[np.mean(average_ranks_first_step_qwen_detail_prompt_hub)],
+        error_y=dict(type='data', array=[np.std(average_ranks_first_step_qwen_detail_prompt_hub)]),
+        name='Qwen Detail Prompt Hub',
         marker=dict(color='green'),
         width=0.2
     ))
+
+   
 
     fig.update_traces(showlegend=False)
     fig.data[0].showlegend = True
     fig.data[0].name = 'Qwen Simple Prompt'
     fig.data[1].showlegend = True
-    fig.data[1].name = 'Qwen Detail Prompt Hub'
+    fig.data[1].name = 'Qwen Simple Prompt Hub'
     fig.data[2].showlegend = True
-    fig.data[2].name = 'Qwen Simple Prompt Hub'
+    fig.data[2].name = 'Qwen Detailed Prompt Hub'
     fig.update_layout(
         barmode='group',
         xaxis_title='Source -> Target',
-        yaxis_title='Path Length',
+        yaxis_title='Mean Rank',
         title='Comparison of ranks of the first step of LLM Paths with Different Prompts',
         height=600,
         bargap=0.15
     )
 
     fig.show()
-        
-    
 
+
+def plot_llm_times():
+    with open("data/llm_times_llama_simple_prompt.json", "r") as f:
+        llm_times_llama_simple_prompt = json.load(f)
+    with open("data/llm_times_llama_detailed_prompt.json", "r") as f:
+        llm_times_qwen_simple_prompt = json.load(f)
+
+    fig = go.Figure()
+    fig.add_trace(go.Box(
+        y=[time for time in llm_times_llama_simple_prompt],
+        name='Llama Simple Prompt',
+        marker=dict(color='blue')
+    ))  
+    fig.add_trace(go.Box(
+        y=[time for time in llm_times_qwen_simple_prompt],
+        name='Llama Detailed Prompt',
+        marker=dict(color='red')
+    ))
+    fig.update_layout(
+        title='Time Performance of Llama with Different Prompts',
+        yaxis_title='Time (s)',
+        height=600,
+        yaxis_type="log"
+    )
+    fig.show()
