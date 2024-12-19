@@ -40,7 +40,7 @@ def get_article_html_path(article_name):
     return os.path.abspath("data/wpcd/wp/{}/{}.htm".format(article_name[0].lower(), article_name))
 
 
-def get_path_links_coordinates(browser, articles, cache):
+def get_path_links_coordinates(browser, articles, cache, normalized=True):
     """
     Get the coordinates of the links between articles in the path.
 
@@ -48,6 +48,7 @@ def get_path_links_coordinates(browser, articles, cache):
         browser: selenium webdriver used to simulate the browser
         articles: list of articles in the path
         cache: dictionary to store the coordinates of the links between articles
+        normalized: whether to normalize the coordinates or not
     
     Returns:
         A list of coordinates of the links between articles in the path
@@ -59,7 +60,7 @@ def get_path_links_coordinates(browser, articles, cache):
         if cur_article == "<":
             continue
         if cur_article in cache and next_article in cache[cur_article]:
-            path_links_coords.extend(cache[cur_article][next_article])
+            path_links_coords.append(cache[cur_article][next_article])
             print("Cache hit for {} -> {}".format(cur_article, next_article))
             continue
         
@@ -67,19 +68,63 @@ def get_path_links_coordinates(browser, articles, cache):
 
         print("Opening file: ", local_html_file)
         browser.get("file:///" + local_html_file)
-        
+
         next_url = "../../wp/{}/{}.htm".format(next_article[0].lower(), next_article)
 
         links = browser.find_elements(By.XPATH, "//a[@href=\"{}\"]".format(next_url))
-        links_coords = [(link.location["x"], link.location["y"]) for link in links] # if many links are found we take all their coordinates
+          
+        links_coords = []
+        for link in links:
+            x = link.location["x"]
+            y = link.location["y"]
+            if normalized:
+                page_width = browser.execute_script("return document.body.scrollWidth")
+                page_height = browser.execute_script("return document.body.scrollHeight")
+
+                x /= page_width
+                y /= page_height
+            
+            links_coords.append((x, y))
 
         if cache.get(cur_article) is None:
             cache[cur_article] = {}
         cache[cur_article][next_article] = links_coords
 
-        path_links_coords.extend(links_coords)
+        path_links_coords.append(links_coords)
     
     return path_links_coords
+
+def get_path_page_size(browser, articles, cache):
+    """
+    Get the size of the page of the articles in the path.
+
+    Args:
+        browser: selenium webdriver used to simulate the browser
+        articles: list of articles in the path
+        cache: dictionary to store the size of the page of the articles
+    
+    Returns:
+        A list of the size of the page of the articles in the path
+    """
+    path_page_size = []
+    for article in articles:
+        if article in cache:
+            path_page_size.append(cache[article])
+            print("Cache hit for {}".format(article))
+            continue
+        
+        local_html_file = get_article_html_path(article)
+
+        print("Opening file: ", local_html_file)
+        browser.get("file:///" + local_html_file)
+        
+        page_width = browser.execute_script("return document.body.scrollWidth")
+        page_height = browser.execute_script("return document.body.scrollHeight")
+
+        cache[article] = (page_width, page_height)
+        path_page_size.append((page_width, page_height))
+    
+    return path_page_size
 
 
 if __name__ == "__main__":
