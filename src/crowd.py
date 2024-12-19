@@ -2,6 +2,7 @@ import numpy as np
 from collections import Counter
 import pandas as pd
 import src.utils as utils
+import networkx as nx
 
 def find_target(target, path):
     """
@@ -32,7 +33,7 @@ def find_next(source, dest, finished_paths_df):
     Returns:
         Next article the crowd chose to click on.
     """
-    paths_src = finished_paths_df[finished_paths_df['path'].apply(lambda x: source in x and x[-1]==dest)]['path']
+    paths_src = finished_paths_df[finished_paths_df['clean_path'].apply(lambda x: source in x and x[-1]==dest)]['clean_path']
     next_list = [find_target(source, path) for path in paths_src]
     next_list = [elem for elem in next_list if elem != '']
     number_of_votes = len(next_list)
@@ -98,7 +99,7 @@ def stats_players(games, finished_paths_df):
     """
     avg_res = []
     for (src, dst) in games:
-        paths = finished_paths_df[finished_paths_df['path'].apply(lambda x: x[0]==src and x[-1]==dst)]['path']
+        paths = finished_paths_df[finished_paths_df['clean_path'].apply(lambda x: x[0]==src and x[-1]==dst)]['clean_path']
         if len(paths)>0:
             avg_res.append(((src, dst), paths.apply(lambda p: len(p)).sum()/len(paths)))
     return avg_res
@@ -205,7 +206,7 @@ def stats_players_crowd(finished_paths_df):
     
     ans_stats = []
     for (src, dst) in games_to_play[['src', 'dst']].values:
-        paths = finished_paths_df[finished_paths_df['path'].apply(lambda x: src in x and x[-1]==dst)]['path']
+        paths = finished_paths_df[finished_paths_df['clean_path'].apply(lambda x: src in x and x[-1]==dst)]['clean_path']
         # Find the index of the first occurrence of the target element
         paths_src = []
         for p in paths:
@@ -225,4 +226,86 @@ def stats_players_crowd(finished_paths_df):
     data['players_score'] = ans_stats
     # Save to CSV
     data.to_csv("./data/crowd_vs_players.csv", index=False)
+
+def find_defeated_crowd(games_to_play, ans_stats, ans_crowd, crowd_stats):
+    """
+    Find all games where the crowd found a longer path than the average length of indivual paths 
+    along with the list of coressponding average length of such individual paths
+
+    Args:
+        games_to_play : numpy array (n,) with all games
+        ans_stats : numpy array (n,) with all averages of individual path lengths
+        ans_crowd : numpy array (n,) with all paths computed by crowd
+        crowd_stats : numpy array (n,) with all path lengths achieved by crowd
     
+    Returns:
+        crowd_fail_ids : list of games where the crowd achieved a longer path than the average length of indivual paths
+        paths_crowd_fail : list of corresponding paths computed by the crowd
+    """
+    crowd_fail_ids = np.nonzero((ans_stats - crowd_stats) < 0)[0]
+    paths_crowd = [p[0] for p in ans_crowd]
+    paths_crowd_fail = [p for (i, p) in enumerate(paths_crowd) if i in crowd_fail_ids]
+    return np.array(games_to_play)[crowd_fail_ids, :], paths_crowd_fail
+
+def edges_from_path(path):
+    """
+    Construct a list of edges from a path that is a list of strings
+
+    Args:
+        path: numpy array (n,). An arbitrary path
+    
+    Returns:
+        list of tuples of names following the order in which they appear in path
+    """
+    edges = []
+    for i in range(len(path)):
+        if i+1 < len(path):
+            edges.append((path[i], path[i+1]))
+    return edges
+
+def create_graph(finished_paths, src, dst):
+    """
+    Build a graph from all paths that link src and dst
+
+    Args:
+        finished_paths: dataframe containing every successful paths played
+        src: source node (string)
+        dst: sink node (string)
+    
+    Returns:
+        Directed Graph computed from paths that link src and dst
+    """
+    DG = nx.DiGraph()
+
+    paths = finished_paths[finished_paths['clean_path'].apply(lambda x: src in x and x[-1]==dst)]['clean_path']
+    # Find the index of the first occurrence of the target element
+    paths_src = []
+    for p in paths:
+        start_index = p.index(src)
+        paths_src.append(p[start_index:])
+
+    for p in paths_src:
+        for (u, v) in edges_from_path(p):
+            if DG.has_edge(u, v):
+                DG[u][v]['weight'] += 1
+            else:
+                DG.add_edge(u, v)
+                DG[u][v]['weight'] = 1
+
+    # Set attributes for source and sink nodes
+    nx.set_node_attributes(DG, {src: "source", dst: "sink"}, name="tag")
+    for node in DG.nodes:
+        if "tag" not in DG.nodes[node]:
+            DG.nodes[node]["tag"] = "intermediate"
+
+    path_crowd = ['Herbivore', 'Animal', 'Mammal', 'Zebra']
+    nx.set_edge_attributes(DG, {e:"red"for e in edges_from_path(path_crowd)}, name="color")
+
+    nx.set_node_attributes(DG, {src: 0, dst: 1}, name="x")
+    nx.set_node_attributes(DG, {src: 0.5, dst: 0.5}, name="y")
+
+    # Remove lonely nodes
+    nodes_to_remove = [node for node, degree in DG.degree() if degree <= 2]
+    DG.remove_nodes_from(nodes_to_remove)
+
+    return DG
