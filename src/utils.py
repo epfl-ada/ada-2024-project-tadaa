@@ -5,6 +5,7 @@ import json
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 
@@ -244,6 +245,7 @@ def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_
         llm_vs_players_ranks.append({"source": source, "target": target, "player_ranks": mean_ranks_players, "llm_ranks": mean_ranks_llm})
 
     # Plot the mean ranks for players against LLMs paths for each source-target pair
+    figs = []
     for ranks in llm_vs_players_ranks:
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -266,7 +268,45 @@ def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_
             yaxis_title="Mean Rank",
         )
 
-        fig.show()
+        figs.append(fig)
+
+    subplot_titles = [f"Source: {ranks['source']} | Target: {ranks['target']}" for ranks in llm_vs_players_ranks]   
+    last = subplot_titles.pop()
+    subplot_titles.append("")
+    subplot_titles.append(last)
+    
+    fig = make_subplots(
+        rows=4, cols=3, subplot_titles=subplot_titles)
+    for i, title in enumerate(fig['layout']['annotations']):
+        title['font'] = dict(size=14)
+    for i, ranks in enumerate(llm_vs_players_ranks):
+        row, col = (4, 2) if i == 9 else (i // 3 + 1, i % 3 + 1)
+        
+        for rank_type, color in [("player_ranks", 'blue'), ("llm_ranks", 'red')]:
+            fig.add_trace(go.Scatter(
+                x=list(range(len(ranks[rank_type]))),
+                y=ranks[rank_type],
+                mode='lines+markers',
+                name=f'{rank_type.replace("_", " ").title()} {ranks["source"]} -> {ranks["target"]}',
+                line=dict(color=color)
+            ), row=row, col=col)
+        
+        if i == 9:
+            break
+        
+    fig.update_xaxes(title_text="Step", row=row, col=col)
+    fig.update_yaxes(title_text="Mean Rank", row=row, col=col)
+
+
+    fig.update_layout(
+        width = 1000,
+        height = 900,
+        title_text="Mean Ranks for Players vs LLMs Paths",
+        showlegend=False
+    )
+
+    fig.show()
+    fig.write_html("llm_strategies.html")
 
 
 def compare_llms_and_prompts():
