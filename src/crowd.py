@@ -227,25 +227,37 @@ def stats_players_crowd(finished_paths_df):
     # Save to CSV
     data.to_csv("./data/crowd_vs_players.csv", index=False)
 
-def find_defeated_crowd(games_to_play, ans_stats, ans_crowd, crowd_stats):
+def find_defeated_crowd(crowd_res, finished_paths_df):
     """
     Find all games where the crowd found a longer path than the average length of indivual paths 
     along with the list of coressponding average length of such individual paths
 
     Args:
-        games_to_play : numpy array (n,) with all games
-        ans_stats : numpy array (n,) with all averages of individual path lengths
-        ans_crowd : numpy array (n,) with all paths computed by crowd
-        crowd_stats : numpy array (n,) with all path lengths achieved by crowd
+        crowd_res: dataframe containing every results of the crowd along with average of individual paths
+        finished_paths_df : dataframe containing every successful paths played
     
     Returns:
-        crowd_fail_ids : list of games where the crowd achieved a longer path than the average length of indivual paths
-        paths_crowd_fail : list of corresponding paths computed by the crowd
+        failed_games : list of games where the crowd found a longer path than the average of individual paths
+        paths_crowd_fail : list of paths computed by the crowd for each failed game
+        players_res : list of distribution of path length for each failed game
     """
-    crowd_fail_ids = np.nonzero((ans_stats - crowd_stats) < 0)[0]
-    paths_crowd = [p[0] for p in ans_crowd]
-    paths_crowd_fail = [p for (i, p) in enumerate(paths_crowd) if i in crowd_fail_ids]
-    return np.array(games_to_play)[crowd_fail_ids, :], paths_crowd_fail
+    failed_games = crowd_res.loc[crowd_res['crowd_score'] > crowd_res['players_score']][['src', 'dst']]
+    paths_crowd_fail= []
+    players_res = []
+    for _, row in failed_games.iterrows():
+        src, dst = row
+        # Run crowd algoirthm to get the faulty path
+        crowd_path, _ = crowd(src, dst, finished_paths_df)
+        paths_crowd_fail.append(crowd_path)
+        # Fetch all paths from src to dst and record their distribution
+        players_paths = finished_paths_df[finished_paths_df['clean_path'].apply(lambda x: src in x and x[-1]==dst)]['clean_path'].copy()
+        for i, p in enumerate(players_paths):
+            start_index = p.index(src)
+            players_paths.iloc[i] = p[start_index:]
+        players_paths = players_paths.to_frame()
+        players_paths['len'] = players_paths['clean_path'].apply(len)
+        players_res.append(players_paths.groupby(by='len').count().reset_index().rename(columns={'clean_path': 'count'}))
+    return failed_games, paths_crowd_fail, players_res
 
 def edges_from_path(path):
     """
