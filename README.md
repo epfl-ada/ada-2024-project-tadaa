@@ -13,7 +13,7 @@ NB: You need to clone the project and access the results.ipynb notebook in order
 
 In Wikispeedia, players move from a source to a target article with minimal clicks—similar to how we pursue life goals, seeking the most efficient path. Our project draws three key lessons from these games for making better decisions.
 
-First, we observe that players who skimmed through pages often missed critical information, impacting their success. This reflects a tendency to rely on surface-level data, highlithing that thorough research and examining all available information often lead to better outcomes.
+First, we observe that players who skimmed through pages often missed critical information, impacting their success. This reflects a tendency to rely on surface-level data, highlighting that thorough research and examining all available information often lead to better outcomes.
 
 Second, while LLMs can aid decision-making, over-relying on them is risky; they don’t always offer the best or most consistent advice.
 
@@ -26,7 +26,7 @@ NB: When we talk about performance in this project, we consider the shortness of
 
 ## Research questions
 
-- Does people lazyness affect their performance? Is there a noticeable difference in the page position of clicked links between successful and unsuccessful players?
+- Does people's lazyness affect their performance? Is there a noticeable difference in the page position of clicked links between successful and unsuccessful players?
 - Can we always trust LLMs? Is it safe to take their answers as facts without second checking?
 - Will a crowd of players do better than the same players individually? In other words, does Condorcet's jury theorem apply? If it applies, what are the recurring patterns for the cases in which the crowd fails to beat the individuals?
 
