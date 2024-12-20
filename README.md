@@ -55,15 +55,19 @@ Our idea is to start a game with a given source `src` and target `dst` that migh
 
 We run this algorithm on each (`src`, `dst`) tuple with a voter score > 50 and compare the results with what the real players obtained on average for the same (`src`,`dst`) tuple.
 
-We find that in 98% of the games played, the crowd outperforms the average of individual people.
+We find that in 98% of the games played, the crowd outperforms the average of individual people. We analysed why in 2% of games, the individual players outperformed the crowd. They are very special cases where the overwhelming majority of players chose a particular path and a few of them chose the optimal path. The majority selects a path that is one edge longer than the optimal path. Therefore, the average length of individual players falls right below the crowd path length.
 
 
 ## Contributions 
 
 Hassen Aissa: Prompt engineering and plots of LLMs part, top 10 pairs analysis, data story
+
 Yasmine Chaker: Generating LLM paths, plots of LLMs part, data story
+
 Lysandre Costes: Algorithms and plots of page position of clicked links part, top 50 pairs analysis, data story
+
 Réza Machraoui: Algorithms and plots of crowd performance part, data story
+
 Matisse Vanschalkwijk: Website design, data story
 
 
