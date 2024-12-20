@@ -6,6 +6,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from plotly.subplots import make_subplots
 
 
 
@@ -343,58 +344,28 @@ def compare_llms_and_prompts():
         else:
             return 0, 0
     for i, key in enumerate(llm_paths_qwen_detail_prompt_performance):
-        qwen_detail_mean, qwen_detail_std = check_empty(llm_paths_qwen_detail_prompt_performance[key])
-        llama_detail_mean, llama_detail_std = check_empty(llm_paths_llama_detail_prompt_performance[key])
-        qwen_simple_mean, qwen_simple_std = check_empty(llm_paths_qwen_simple_prompt_performance[key])
-        llama_simple_mean, llama_simple_std = check_empty(llm_paths_llama_simple_prompt_performance[key])
-                                                
-        fig.add_trace(go.Bar(
-            x=[key],
-            y=[qwen_detail_mean],
-            error_y=dict(type='data', array=[qwen_detail_std]),
-            name='Qwen Detail Prompt',
-            marker=dict(color='blue'),
-            width=0.2,
-            offsetgroup=0,
-            showlegend=(i == 0)  
-
-        ))
-
-        fig.add_trace(go.Bar(
-            x=[key],
-            y=[llama_detail_mean],
-            error_y=dict(type='data', array=[llama_detail_std]),
-            name='Llama Detail Prompt',
-            marker=dict(color='red'),
-            width=0.2,
-            offsetgroup=1,
-            showlegend=(i == 0)  
-
-        ))
-
-        fig.add_trace(go.Bar(
-            x=[key],
-            y=[qwen_simple_mean],
-            error_y=dict(type='data', array=[qwen_simple_std]),
-            name='Qwen Simple Prompt',
-            marker=dict(color='green'),
-            width=0.2,
-            offsetgroup=2,
-            showlegend=(i == 0)  
-
-        ))
-
-        fig.add_trace(go.Bar(
-            x=[key],
-            y=[llama_simple_mean],
-            error_y=dict(type='data', array=[llama_simple_std]),
-            name='Llama Simple Prompt',
-            marker=dict(color='orange'),
-            width=0.2,
-            offsetgroup=3,
-            showlegend=(i == 0) 
-        ))
-
+        means = [
+            check_empty(llm_paths_qwen_detail_prompt_performance[key]),
+            check_empty(llm_paths_llama_detail_prompt_performance[key]),
+            check_empty(llm_paths_qwen_simple_prompt_performance[key]),
+            check_empty(llm_paths_llama_simple_prompt_performance[key])
+        ]
+        colors = ['blue', 'red', 'green', 'orange']
+        names = ['Qwen Detail Prompt', 'Llama Detail Prompt', 'Qwen Simple Prompt', 'Llama Simple Prompt']
+        offsetgroups = range(4)
+        
+        for j, (mean, color, name, offset) in enumerate(zip(means, colors, names, offsetgroups)):
+            fig.add_trace(go.Bar(
+                x=[key],
+                y=[mean[0]],
+                error_y=dict(type='data', array=[mean[1]]),
+                name=name,
+                marker=dict(color=color),
+                width=0.2,
+                offsetgroup=offset,
+                showlegend=(i == 0)
+            ))
+        
         fig.update_layout(
             barmode='group',
             xaxis_title='Source -> Target',
@@ -444,40 +415,27 @@ def hub_impact():
     llm_paths_qwen_detail_prompt_hub_averages = [sum(llm_paths_qwen_detail_prompt_hub_performance[key])/len(llm_paths_qwen_detail_prompt_hub_performance[key]) for key in llm_paths_qwen_detail_prompt_hub_performance] 
 
     fig = go.Figure()
-    fig.add_trace(go.Bar(
-        x = ["Qwen Simple Prompt"],
-        y = [np.mean(llm_paths_qwen_simple_prompt_averages)],
-        error_y=dict(type='data', array=[np.std(llm_paths_qwen_simple_prompt_averages)]),
-        name='Qwen Simple Prompt',
-        marker=dict(color='blue'),
-        width=0.2
-    ))
 
-    fig.add_trace(go.Bar(
-        x = ["Qwen Simple Prompt Hub"],
-        y = [np.mean(llm_paths_qwen_simple_prompt_hub_averages)],
-        error_y=dict(type='data', array=[np.std(llm_paths_qwen_simple_prompt_hub_averages)]),
-        name='Qwen Simple Prompt Hub',
-        marker=dict(color='red'),
-        width=0.2
-    ))
+    data = [
+        ("Qwen Simple Prompt", llm_paths_qwen_simple_prompt_averages, 'blue'),
+        ("Qwen Simple Prompt Hub", llm_paths_qwen_simple_prompt_hub_averages, 'red'),
+        ("Qwen Detail Prompt Hub", llm_paths_qwen_detail_prompt_hub_averages, 'green')
+    ]
 
-    fig.add_trace(go.Bar(
-        x = ["Qwen Detail Prompt Hub"],
-        y = [np.mean(llm_paths_qwen_detail_prompt_hub_averages)],
-        error_y=dict(type='data', array=[np.std(llm_paths_qwen_detail_prompt_hub_averages)]),
-        name='Qwen Detail Prompt Hub',
-        marker=dict(color='green'),
-        width=0.2
-    ))
+    for i, (name, values, color) in enumerate(data):
+        fig.add_trace(go.Bar(
+            x=[name],
+            y=[np.mean(values)],
+            error_y=dict(type='data', array=[np.std(values)]),
+            name=name,
+            marker=dict(color=color),
+            width=0.2
+        ))
 
     fig.update_traces(showlegend=False)
-    fig.data[0].showlegend = True
-    fig.data[0].name = 'Qwen Simple Prompt'
-    fig.data[1].showlegend = True
-    fig.data[1].name = 'Qwen Simple Prompt Hub'
-    fig.data[2].showlegend = True
-    fig.data[2].name = 'Qwen Detail Prompt Hub'
+    for i in range(len(data)):
+        fig.data[i].showlegend = True
+
     fig.update_layout(
         barmode='group',
         xaxis_title='Source -> Target',
@@ -490,67 +448,48 @@ def hub_impact():
     fig.show()
 
 
+
 def average_ranks_first_step(rank: dict):
     llm_paths_qwen_simple_prompt = read_llm_paths("data/llm_responses_qwen_simple_prompt.json")
     llm_paths_qwen_detail_prompt_hub = read_llm_paths("data/llm_responses_qwen_detailed_hub_prompt.json")
     llm_paths_qwen_simple_prompt_hub = read_llm_paths("data/llm_responses_qwen_simple_hub_prompt.json")
 
-    average_ranks_first_step_qwen_simple_prompt = []
-    average_ranks_first_step_qwen_detail_prompt_hub = []
-    average_ranks_first_step_qwen_simple_prompt_hub = []
+    average_ranks = {
+        "simple": [],
+        "detail_hub": [],
+        "simple_hub": []
+    }
 
-    for key in llm_paths_qwen_simple_prompt:
-        for path in llm_paths_qwen_simple_prompt[key]:
-            if path[1] not in rank:
-                continue
-            average_ranks_first_step_qwen_simple_prompt.append(rank.get(path[1], 0))
-    for key in llm_paths_qwen_detail_prompt_hub:
-        for path in llm_paths_qwen_detail_prompt_hub[key]:
-            if path[1] not in rank:
-                continue
-            average_ranks_first_step_qwen_detail_prompt_hub.append(rank.get(path[1], 0))
-    for key in llm_paths_qwen_simple_prompt_hub:
-        for path in llm_paths_qwen_simple_prompt_hub[key]:
-            if path[1] not in rank:
-                continue
-            average_ranks_first_step_qwen_simple_prompt_hub.append(rank.get(path[1], 0))
+    for prompt, paths in {
+        "simple": llm_paths_qwen_simple_prompt,
+        "detail_hub": llm_paths_qwen_detail_prompt_hub,
+        "simple_hub": llm_paths_qwen_simple_prompt_hub
+    }.items():
+        for key in paths:
+            for path in paths[key]:
+                if path[1] in rank:
+                    average_ranks[prompt].append(rank.get(path[1], 0))
 
     fig = go.Figure()
 
-    fig.add_trace(go.Bar(
-        x=["Qwen Simple Prompt"],
-        y=[np.mean(average_ranks_first_step_qwen_simple_prompt)],
-        error_y=dict(type='data', array=[np.std(average_ranks_first_step_qwen_simple_prompt)]),
-        name='Qwen Simple Prompt',
-        marker=dict(color='blue'),
-        width=0.2
-    ))
-
-    fig.add_trace(go.Bar(
-        x=["Qwen Simple Prompt Hub"],
-        y=[np.mean(average_ranks_first_step_qwen_simple_prompt_hub)],
-        error_y=dict(type='data', array=[np.std(average_ranks_first_step_qwen_simple_prompt_hub)]),
-        name='Qwen Simple Prompt Hub',
-        marker=dict(color='red'),
-        width=0.2
-    ))
-
-    fig.add_trace(go.Bar(
-        x=["Qwen Detail Prompt Hub"],
-        y=[np.mean(average_ranks_first_step_qwen_detail_prompt_hub)],
-        error_y=dict(type='data', array=[np.std(average_ranks_first_step_qwen_detail_prompt_hub)]),
-        name='Qwen Detail Prompt Hub',
-        marker=dict(color='green'),
-        width=0.2
-    ))
+    for name, color, values in [
+        ("Qwen Simple Prompt", 'blue', average_ranks["simple"]),
+        ("Qwen Simple Prompt Hub", 'red', average_ranks["simple_hub"]),
+        ("Qwen Detail Prompt Hub", 'green', average_ranks["detail_hub"])
+    ]:
+        fig.add_trace(go.Bar(
+            x=[name],
+            y=[np.mean(values)],
+            error_y=dict(type='data', array=[np.std(values)]),
+            name=name,
+            marker=dict(color=color),
+            width=0.2
+        ))
 
     fig.update_traces(showlegend=False)
-    fig.data[0].showlegend = True
-    fig.data[0].name = 'Qwen Simple Prompt'
-    fig.data[1].showlegend = True
-    fig.data[1].name = 'Qwen Simple Prompt Hub'
-    fig.data[2].showlegend = True
-    fig.data[2].name = 'Qwen Detailed Prompt Hub'
+    for i in range(3):
+        fig.data[i].showlegend = True
+
     fig.update_layout(
         barmode='group',
         xaxis_title='Source -> Target',
@@ -561,6 +500,7 @@ def average_ranks_first_step(rank: dict):
     )
 
     fig.show()
+
 
 
 def plot_llm_times():
@@ -589,3 +529,87 @@ def plot_llm_times():
         yaxis_type="log"
     )
     fig.show()
+
+
+def plot_top_game_pairs(finished_paths: pd.DataFrame, number_of_pairs: int):
+    """Plot the top game pairs"""
+    # total number of games for popular pairs
+    top_pairs = finished_paths.groupby(["source", "target"]).size().reset_index(name="count").sort_values("count", ascending=False).head(number_of_pairs)
+    top_pairs_count = top_pairs["count"].sum()
+
+    # total number of games
+    total_games = finished_paths.shape[0]
+    top_pairs["source_target"] = top_pairs["source"] + " -> " + top_pairs["target"]
+    counts = top_pairs["count"].tolist()
+    fig = px.bar(counts, orientation='h', title=f"Top {number_of_pairs} pairs of source and target", height=700, width = 1000)
+    fig.update_traces(
+        hovertemplate='source_target=%{text}<extra></extra>, count=%{x}',
+        text=top_pairs["source_target"], textposition='outside')
+    fig.update_layout(
+        xaxis_title="Count",
+        yaxis=dict(showticklabels=False), 
+        yaxis_title="", 
+        xaxis_type="log", 
+        showlegend=False,
+    )
+    fig.show()
+    print(f"Top {number_of_pairs} pairs represent {top_pairs_count/total_games*100:.2f}% of the total games")
+
+def source_target_distribution(finished_paths: pd.DataFrame, number_of_pairs: int, categories: dict):
+    """Plot the distribution of the source and target categories"""
+    top_pairs = finished_paths.groupby(["source", "target"]).size().reset_index(name="count").sort_values("count", ascending=False) 
+    top_pairs["source_category"] = top_pairs["source"].apply(lambda x: categories.get(x, None)[0]) 
+    top_pairs["target_category"] = top_pairs["target"].apply(lambda x: categories.get(x, None)[0])
+    finished_paths_st = top_pairs.groupby(['source_category', 'target_category']).size().reset_index(name='count').sort_values('count', ascending=False)
+
+    top_pairs_st = top_pairs.head(number_of_pairs).groupby(['source_category', 'target_category']).size().reset_index(name='count').sort_values('count', ascending=False)
+    category_colors = {
+        'Religion': 'rgb(47,84,133)',
+        'History': 'rgb(208,195,39)',
+        'Geography': 'rgb(61,193,195)',
+        'Mathematics': 'rgb(158,54,135)',
+        'Everyday_life': 'rgba(106,189,67,255)',
+        'People': 'rgba(247,235,20,255)',
+        'Philosophy': 'rgb(128, 0, 128)',
+        'Reference': 'rgb(233,30,37)',
+        'Science': 'rgba(55,83,166,255)',
+        'Countries': 'rgb(255, 192, 203)',
+        'Language_and_literature': 'rgba(251,163,25,255)',
+        'Design_and_Technology': 'rgb(0, 128, 128)',
+        'Art': 'rgb(0, 255, 255)',
+        'IT': 'rgb(255, 215, 0)',
+        "Citizenship": 'rgb(255, 0, 0)',
+        "Music": 'rgb(0, 0, 255)',
+        "Business_Studies": 'rgb(0, 255, 0)',
+    }
+    def create_sankey_plot(df, title):
+        return go.Figure(data=[go.Sankey(
+            node=dict(
+                pad=15,
+                thickness=20,
+                line=dict(color="black", width=0.5),
+                label=df['source_category'].tolist() + df['target_category'].tolist(),
+                color=[category_colors[cat] for cat in df['source_category'].tolist() + df['target_category'].tolist()]
+            ),
+            link=dict(
+                source=[df['source_category'].tolist().index(cat) for cat in df['source_category']],
+                target=[len(df['source_category'].tolist()) + df['target_category'].tolist().index(cat) for cat in df['target_category']],
+                value=df['count'],
+                color=[category_colors[cat] for cat in df['source_category']]
+            )
+        )]).update_layout(title_text=title, font_size=10)
+
+    fig_alluvial1 = create_sankey_plot(top_pairs_st, "Source to target flows of top pairs")
+    fig_alluvial2 = create_sankey_plot(finished_paths_st, "Source to target flows of all pairs")
+    fig_combined = make_subplots(
+        rows=1, cols=2,
+        subplot_titles=("Source Category to Target Category", "Source General Category to Target General Category"),
+        specs=[[{'type': 'sankey'}, {'type': 'sankey'}]]
+    )
+
+    for trace in fig_alluvial1.data + fig_alluvial2.data:
+        fig_combined.add_trace(trace, row=1, col=1 if trace in fig_alluvial1.data else 2)
+
+    fig_combined.update_layout(height=600, width=1200)
+    fig_combined.show()
+    
