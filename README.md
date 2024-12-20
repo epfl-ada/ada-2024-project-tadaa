@@ -5,7 +5,7 @@
 
 NB: You need to clone the project and access the results.ipynb notebook in order to display the plots as they are made with plotly.
 
-🌐🧞‍♂️ Link to data story: [click here]](https://how-to-make-decisions-according-to-wikispeedia.b12sites.com/index)
+🌐🧞‍♂️ Link to data story: [click here](https://how-to-make-decisions-according-to-wikispeedia.b12sites.com/index)
 
 ## Abstract
 
@@ -60,10 +60,10 @@ We find that in 98% of the games played, the crowd outperforms the average of in
 
 ## Contributions 
 
-Hassen Aissa: 
-Yasmine Chaker: data story, LLM plots, readme
-Lysandre Costes:
-Réza Machraoui:
-Matisse Vanschalkwijk:
+Hassen Aissa: Prompt engineering and plots of LLMs part, top 10 pairs analysis, data story
+Yasmine Chaker: Generating LLM paths, plots of LLMs part, data story
+Lysandre Costes: Algorithms and plots of page position of clicked links part, top 50 pairs analysis, data story
+Réza Machraoui: Algorithms and plots of crowd performance part, data story
+Matisse Vanschalkwijk: Website design, data story
 
 

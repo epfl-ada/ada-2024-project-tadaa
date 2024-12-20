@@ -190,7 +190,7 @@ def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_
     fig.update_yaxes(title_text="Mean Rank", row=row, col=col)
 
     fig.update_layout(
-        width=1200,
+        width=1000,
         height=900,
         title_text="Mean Ranks for Players vs LLMs Paths",
         legend=dict(
@@ -325,6 +325,7 @@ def plot_top_game_pairs(finished_paths: pd.DataFrame, number_of_pairs: int):
         yaxis_title="", 
         xaxis_type="log", 
         showlegend=False,
+        width = 1000
     )
     fig.show()
     print(f"Top {number_of_pairs} pairs represent {top_pairs_count/total_games*100:.2f}% of the total games")
@@ -378,14 +379,14 @@ def source_target_distribution(finished_paths: pd.DataFrame, number_of_pairs: in
     fig_alluvial2 = create_sankey_plot(finished_paths_st, "Source to target flows of all pairs")
     fig_combined = make_subplots(
         rows=1, cols=2,
-        subplot_titles=("Source Category to Target Category", "Source General Category to Target General Category"),
+        subplot_titles=(f"Source to target flows of top {number_of_pairs} pairs", "Source to target flows of all pairs"),
         specs=[[{'type': 'sankey'}, {'type': 'sankey'}]]
     )
 
     for trace in fig_alluvial1.data + fig_alluvial2.data:
         fig_combined.add_trace(trace, row=1, col=1 if trace in fig_alluvial1.data else 2)
 
-    fig_combined.update_layout(height=600, width=1200)
+    fig_combined.update_layout(height=600, width=1000)
     fig_combined.show()
 
 
@@ -451,7 +452,7 @@ def compare_llms_and_prompts(download=True):
             yaxis_title='Performance Score',
             title='Comparison of LLM Performance Score with Different Prompts and Models',
             height=700,
-            width=1200,
+            width=1000,
             legend=dict(
                 orientation="h",
                 yanchor="top",
