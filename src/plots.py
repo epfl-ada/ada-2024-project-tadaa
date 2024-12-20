@@ -734,3 +734,21 @@ def plot_path_length_distribution(crowd_res, finished_paths_df, download=True):
 
         if download:
             fig.write_html("path_length_distribution_failed_games.html")
+
+
+def describe_path_length_distribution(df):
+    popular_pairs = df.groupby(["source", "target"]).size().reset_index(name="count")
+    popular_pairs = popular_pairs.sort_values("count", ascending=False).head(50)
+    
+    popular_pairs_set = set(zip(popular_pairs["source"], popular_pairs["target"]))
+    filtered_df = df[df.apply(lambda row: (row["source"], row["target"]) in popular_pairs_set, axis=1)]
+    filtered_df = filtered_df.drop_duplicates(subset=["hashedIpAddress", "timestamp"])
+
+    length_size = filtered_df.groupby("path_length").size().reset_index(name="count").sort_values("path_length")
+    length_size.plot(x="path_length", y="count", kind="bar", figsize=(4, 2))
+
+    length_size["count"] /= length_size["count"].sum()
+    length_size["cumulative"] = length_size["count"].cumsum()
+    length_size.plot(x="path_length", y="cumulative", kind="line", figsize=(4, 2))
+
+    print(length_size[:10])
