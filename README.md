@@ -68,6 +68,6 @@ Lysandre Costes: Algorithms and plots of page position of clicked links part, to
 
 Réza Machraoui: Algorithms and plots of crowd performance part, data story
 
-Matisse Vanschalkwijk: Website design, data story
+Matisse Van Schalkwijk: Website design, data story
 
 
