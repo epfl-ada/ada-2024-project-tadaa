@@ -2,10 +2,12 @@ import json
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.figure_factory as ff
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from ipysigma import Sigma
 from .utils import read_llm_paths, mean_ranks, paths_with_most_common_length
-
+from src.crowd import find_defeated_crowd, create_graph
 
 
 def plot_tsatistics(sources: list, targets: list,p_values: list, download=True):
@@ -516,3 +518,104 @@ def hub_impact(download=True):
 
     if download:
         fig.write_html("hub_performance.html")
+
+
+def plot_graph_between(finished_paths_df, src, dst, download=True):
+    """Create a graph of all pages touched by a path from src or dst"""
+    DG = create_graph(finished_paths_df, src, dst)
+
+    if download:
+        Sigma.write_html(
+            DG,
+            f'./graph_{src}_{dst}.html',
+            fullscreen=True,
+            node_color='tag',
+            node_size_range=(3, 20),
+            max_categorical_colors=30,
+            default_edge_type='curve',
+            node_border_color_from='node',
+            default_node_label_size=14,
+            node_size=DG.degree)
+
+    return Sigma(DG, 
+      node_color="tag",
+      node_label_size=DG.degree,
+      node_size=DG.degree,
+      edge_size="edge_size" 
+     )
+
+def plot_crowd_players_comparison(crowd_res, download=True):
+    """Box plot of average length of individual paths and length achieved by crowd"""
+    fig = go.Figure()
+    fig.add_trace(go.Box(y=crowd_res['players_score'], name='Real Data'))
+    fig.add_trace(go.Box(y=crowd_res['crowd_score'], name='Crowd Data'))
+    fig.update_layout(
+        title="Comparison of Real Path Lengths and Crowd Path Lengths",
+        yaxis_title="Averages",
+        xaxis_title="",
+        legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=-0.3,
+                xanchor="center",
+                x=0.5
+            )
+    )
+
+    fig.show()
+
+    if download:
+        fig.write_html("box_plot_crowd_vs_players.html")
+
+def plot_crowd_players_density(crowd_res, download=True):
+    """Plot density of average lengths of individual players along with density of lengths achieved by crowd"""
+    fig = ff.create_distplot(
+        [crowd_res['players_score'], crowd_res['crowd_score']], 
+        group_labels=['Real Data', 'Crowd Data'], 
+        bin_size=1,
+        colors=["rgba(0, 0, 255, 0.3)", "rgba(255, 0, 0, 0.3)"]
+    )
+    fig.update_layout(
+        title="Distribution of averages",
+        yaxis_title="Density",
+        xaxis_title="Path Length",
+        height=800,
+        legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=0.2,
+                xanchor="center",
+                x=0.5
+            )
+    )
+    fig.data = [trace for trace in fig.data if trace.yaxis != 'y2']
+
+    fig.show()
+
+    if download:
+        fig.write_html("density_crowd_vs_players.html")
+
+def plot_path_length_distribution(crowd_res, finished_paths_df, download=True):
+    """Plot length distribution for the paths where the crowd computed a longer path than individual players"""
+    failed_games, paths_crowd_fail, players_res = find_defeated_crowd(crowd_res, finished_paths_df)
+    for i, _ in enumerate(failed_games):
+        fig = px.bar(players_res[i], x='len', y='count')
+        fig.update_layout(title={
+        'text': f"Length distribution for path from \"{failed_games.iloc[i]['src']}\" to \"{failed_games.iloc[i]['dst']}\"",  # Setting the title text
+        'x': 0.5,                      # Centering the title
+        'xanchor': 'center',           # Anchoring the title to the center
+        'yanchor': 'top'               # Anchoring the title to the top
+        },
+        title_font=dict(size=20, color='black'),
+        legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=-0.3,
+                xanchor="center",
+                x=0.5
+            ))  # Customizing font size and color
+        fig.show()
+
+        if download:
+            fig.write_html("path_length_distribution_failed_games.html")
+
