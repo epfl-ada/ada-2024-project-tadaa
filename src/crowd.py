@@ -255,7 +255,7 @@ def find_defeated_crowd(crowd_res, finished_paths_df):
             start_index = p.index(src)
             players_paths.iloc[i] = p[start_index:]
         players_paths = players_paths.to_frame()
-        players_paths['len'] = players_paths['clean_path'].apply(len)
+        players_paths['len'] = players_paths['clean_path'].apply(utils.path_length)
         players_res.append(players_paths.groupby(by='len').count().reset_index().rename(columns={'clean_path': 'count'}))
     return failed_games, paths_crowd_fail, players_res
 
