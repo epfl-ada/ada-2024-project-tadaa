@@ -146,7 +146,8 @@ def tstats_pvalues(sources: list, targets: list, finished_paths_df: pd.DataFrame
         
         t_stat, p_value = stats.ttest_ind(llm_performance, player_performance, alternative='less')
         t_stats.append(abs(t_stat))
-        p_values.append(p_value)  
+        p_values.append(p_value)
+    
     return p_values
 
 

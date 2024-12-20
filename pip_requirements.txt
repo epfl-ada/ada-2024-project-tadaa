@@ -12,3 +12,4 @@ transformers==4.46.2
 nbformat==5.10.4
 bitsandbytes==0.44.1
 accelerate==1.1.1
+ipysigma==0.24.4

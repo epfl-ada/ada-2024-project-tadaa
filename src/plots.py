@@ -4,11 +4,11 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from utils import read_llm_paths, mean_ranks, paths_with_most_common_length
+from .utils import read_llm_paths, mean_ranks, paths_with_most_common_length
 
 
 
-def plot_tsatistics(sources: list, targets: list,p_values: list):
+def plot_tsatistics(sources: list, targets: list,p_values: list, download=True):
     """Plot t-statistics and p-values
 
     Args:
@@ -37,11 +37,20 @@ def plot_tsatistics(sources: list, targets: list,p_values: list):
         yaxis_title='p-values',
         title='P-values for Player vs LLM Mean Path Length',
         height=600,
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.3,
+            xanchor="center",
+            x=0.5
+        )
     )
 
     fig.show()
+    if download:
+        fig.write_html("p_values.html")
 
-def plot_llms_vs_players(sources: list, targets: list, finished_paths_df: pd.DataFrame, llm_paths: dict):
+def plot_llms_vs_players(sources: list, targets: list, finished_paths_df: pd.DataFrame, llm_paths: dict, download=True):
     """Plot the means and std errors of the average path lengths for human players and LLMs 
 
         sources (list): sources list
@@ -80,25 +89,36 @@ def plot_llms_vs_players(sources: list, targets: list, finished_paths_df: pd.Dat
 
         llm_means.append(llm_mean_length)
         llm_std_errors.append(llm_std_error)
-    
     fig = px.scatter(
         x=[f"{source} -> {target}" for source, target in zip(sources, targets)] * 2,
         y=player_means + llm_means,
         error_y=player_std_errors + llm_std_errors,
         labels={"x": "Source -> Target", "y": "Path Length"},
         title="Player vs LLM Mean Path Length per source-target pair",
-        color=["Player Paths"] * len(player_means) + ["LLM Paths"] * len(llm_means)
+        color=["Player"] * len(player_means) + ["LLM"] * len(llm_means),
+        color_discrete_map={"Player": "blue", "LLM": "red"}
     )
     fig.update_layout(
         xaxis=dict(tickmode='array', tickvals=list(range(len(sources))), ticktext=[f"{source} -> {target}" for source, target in zip(sources, targets)]),
         xaxis_title="Source -> Target",
         yaxis_title="Path Length",
-        height=600
+        height=600,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.5,
+            xanchor="center",
+            x=0.5,
+            title=""
+        )
     )
     fig.show()
 
+    if download:
+        fig.write_html("llm_vs_players.html")
 
-def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_df: pd.DataFrame, llm_paths: dict, ranks: dict):
+
+def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_df: pd.DataFrame, llm_paths: dict, ranks: dict, download=True):
     """Plot the mean ranks for players against
     LLMs paths for each source-target pair for the most common path length
 
@@ -122,32 +142,6 @@ def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_
 
         llm_vs_players_ranks.append({"source": source, "target": target, "player_ranks": mean_ranks_players, "llm_ranks": mean_ranks_llm})
 
-    # Plot the mean ranks for players against LLMs paths for each source-target pair
-    figs = []
-    for ranks in llm_vs_players_ranks:
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=list(range(len(ranks["player_ranks"]))),
-            y=ranks["player_ranks"],
-            mode='lines+markers',
-            name='Player Ranks',
-            line=dict(color='blue')
-        ))
-        fig.add_trace(go.Scatter(
-            x=list(range(len(ranks["llm_ranks"]))),
-            y=ranks["llm_ranks"],
-            mode='lines+markers',
-            name='LLM Ranks',
-            line=dict(color='red')
-        ))
-        fig.update_layout(
-            title=f"Source: {ranks['source']} | Target: {ranks['target']}",
-            xaxis_title="Step in the path",
-            yaxis_title="Mean Rank",
-        )
-
-        figs.append(fig)
-
     subplot_titles = [f"Source: {ranks['source']} | Target: {ranks['target']}" for ranks in llm_vs_players_ranks]   
     last = subplot_titles.pop()
     subplot_titles.append("")
@@ -165,28 +159,35 @@ def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_
                 x=list(range(len(ranks[rank_type]))),
                 y=ranks[rank_type],
                 mode='lines+markers',
-                name=f'{rank_type.replace("_", " ").title()} {ranks["source"]} -> {ranks["target"]}',
-                line=dict(color=color)
+                name=f'{rank_type.replace("_", " ").title()}',
+                line=dict(color=color),
+                showlegend=(i == 0)  # Show legend only for the first subplot
             ), row=row, col=col)
-        
-        if i == 9:
-            break
         
     fig.update_xaxes(title_text="Step", row=row, col=col)
     fig.update_yaxes(title_text="Mean Rank", row=row, col=col)
 
-
     fig.update_layout(
-        width = 1000,
-        height = 900,
+        width=1200,
+        height=900,
         title_text="Mean Ranks for Players vs LLMs Paths",
-        showlegend=False
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.1,
+            xanchor="center",
+            x=0.5
+        )
     )
 
     fig.show()
+
+
+    if download:
+        fig.write_html("llm_vs_players_strategies.html")
     
 
-def average_ranks_first_step(rank: dict):
+def average_ranks_first_step(rank: dict, download=True):
     """Plot the average ranks of the first step of LLM Paths with Different Prompts
 
     Args:
@@ -238,10 +239,21 @@ def average_ranks_first_step(rank: dict):
         yaxis_title='Mean Rank',
         title='Comparison of ranks of the first step of LLM Paths with Different Prompts',
         height=600,
-        bargap=0.15
+        bargap=0.15,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.3,
+            xanchor="center",
+            x=0.5
+        )
+
     )
 
     fig.show()
+
+    if download:
+        fig.write_html("average_ranks_first_step.html")
 
 
 
@@ -281,7 +293,7 @@ def plot_top_game_pairs(finished_paths: pd.DataFrame, number_of_pairs: int):
     total_games = finished_paths.shape[0]
     top_pairs["source_target"] = top_pairs["source"] + " -> " + top_pairs["target"]
     counts = top_pairs["count"].tolist()
-    fig = px.bar(counts, orientation='h', title=f"Top {number_of_pairs} pairs of source and target", height=700, width = 1000)
+    fig = px.bar(counts, orientation='h', title=f"Top {number_of_pairs} pairs of source and target", height=700, width = 1200)
     fig.update_traces(
         hovertemplate='source_target=%{text}<extra></extra>, count=%{x}',
         text=top_pairs["source_target"], textposition='outside')
@@ -355,7 +367,7 @@ def source_target_distribution(finished_paths: pd.DataFrame, number_of_pairs: in
     fig_combined.show()
 
 
-def compare_llms_and_prompts():
+def compare_llms_and_prompts(download=True):
     """Compare the performance of two different LLMs with two different prompts"""
 
     with open("data/llm_responses_llama_simple_prompt.json", "r") as f:
@@ -417,7 +429,7 @@ def compare_llms_and_prompts():
             yaxis_title='Performance Score',
             title='Comparison of LLM Performance Score with Different Prompts and Models',
             height=700,
-            width=1000,
+            width=1200,
             legend=dict(
                 orientation="h",
                 yanchor="top",
@@ -429,8 +441,11 @@ def compare_llms_and_prompts():
 
     fig.show()
 
+    if download:
+        fig.write_html("llm_performance.html")
 
-def hub_impact():
+
+def hub_impact(download=True):
     """Plot the impact of the hub on the performance of the LLMs"""
 
     with open("data/llm_responses_qwen_simple_hub_prompt.json", "r") as f:
@@ -485,9 +500,19 @@ def hub_impact():
         barmode='group',
         xaxis_title='Source -> Target',
         yaxis_title='Performance Score',
-        title='Comparison of Qwen Performance with Different Prompts',
+        title='Comparison of Qwen Performance with Different Prompts with and without Hub',
         height=600,
-        bargap=0.15
+        bargap=0.15,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.3,
+            xanchor="center",
+            x=0.5
+        )
     )
 
     fig.show()
+
+    if download:
+        fig.write_html("hub_performance.html")
