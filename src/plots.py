@@ -116,6 +116,24 @@ def plot_llms_vs_players(sources: list, targets: list, finished_paths_df: pd.Dat
 
     if download:
         fig.write_html("llm_vs_players.html")
+    
+def plot_llm_frequency(sources: list, targets: list,llm_paths: dict, download=True):
+    number_of_finished_paths = {
+    "Source_Target": [f"{source} -> {target}" for source, target in zip(sources, targets)],
+    "Number_of_LLM_paths": [len(llm_paths[f"{source}_{target}"]) for source, target in zip(sources, targets)]
+    }
+    fig = px.bar(number_of_finished_paths, x="Source_Target", y="Number_of_LLM_paths", 
+             title="Number of LLM paths finished by Qwen Simple Prompt out of 100 for each source-target pair")
+
+    fig.update_layout(
+    xaxis_title="Source -> Target",
+    yaxis_title="Number of LLM paths",
+    xaxis_tickangle=45
+    )
+    fig.show()
+
+    if download:
+        fig.write_html("llm_frequency.html")
 
 
 def plot_llm_vs_players_strategies(sources: list, targets: list, finished_paths_df: pd.DataFrame, llm_paths: dict, ranks: dict, download=True):
