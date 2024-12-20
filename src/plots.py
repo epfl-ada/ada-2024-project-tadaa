@@ -645,6 +645,7 @@ def plot_graph_between(finished_paths_df, src, dst, download=True):
         Sigma.write_html(
             DG,
             f'./graph_{src}_{dst}.html',
+            node_metrics=['louvain'],
             fullscreen=True,
             node_color='tag',
             node_size_range=(3, 20),
