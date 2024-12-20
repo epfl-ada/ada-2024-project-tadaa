@@ -128,10 +128,14 @@ def mean_ranks(paths: list, ranks: dict):
 def tstats_pvalues(sources: list, targets: list, finished_paths_df: pd.DataFrame, llm_paths: dict):
     """Compute t-statistics and p-values to compare players and LLM paths
 
+    Parameters:
         sources (list): sources list
         targets (list): targets list
         finished_paths_df (DataFrame): players finished paths
         llm_paths (dict): the LLM generated paths for each source-target pair   
+
+    Returns:
+        list: p-values
     """
     # Compute t-statistics and p-values to compare players and LLM paths
     t_stats = []
@@ -151,14 +155,39 @@ def tstats_pvalues(sources: list, targets: list, finished_paths_df: pd.DataFrame
     return p_values
 
 
+def compute_coordinates_per_step(links_coords_finished, links_coords_unfinished):
+    """
+    Computes the variance of x and y coordinates at each step of tha paths.
+    
+    Parameters:
+        links_coords_finished (pd.DataFrame): DataFrame containing finished paths
+        links_coords_unfinished (pd.DataFrame): DataFrame containing unfinished paths
+    
+    Returns:
+    tuple: A tuple containing:
+        - steps (list of int): List of step numbers from 1.
+        - variance_x (list of float): List of variances of x coordinates for each step.
+        - variance_y (list of float): List of variances of y coordinates for each step.
+    """
+    
+    max_step = 7
 
+    coords_per_step = {}
+    for df in [links_coords_finished, links_coords_unfinished]:
+        for _, line in df.iterrows():
+            for i, coords in enumerate(line["normalized_links_coords"]):
+                if i >= max_step:
+                    break
+                coords_per_step.setdefault(i, []).extend(coords)
 
+    variance_x = []
+    variance_y = []
+    for step, coords in coords_per_step.items():
+        x_coords = [coord[0] for coord in coords]
+        y_coords = [coord[1] for coord in coords]
+        variance_x.append(np.var(x_coords))
+        variance_y.append(np.var(y_coords))
 
+    steps = list(range(1, max_step + 1))
 
-
-
-
-
-
-
-
+    return steps, variance_x, variance_y

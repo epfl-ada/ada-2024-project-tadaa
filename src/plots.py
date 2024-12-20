@@ -4,7 +4,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from .utils import read_llm_paths, mean_ranks, paths_with_most_common_length
+from .utils import read_llm_paths, mean_ranks, paths_with_most_common_length, compute_coordinates_per_step
 
 
 
@@ -534,3 +534,100 @@ def hub_impact(download=True):
 
     if download:
         fig.write_html("hub_performance.html")
+
+
+def plot_coordinates_distribution(all_links_coords, title, download_path=None):
+    """Plot the distribution of the coordinates of the links between articles in the path"""
+    x_coords = []
+    y_coords = []
+    for coords in all_links_coords:
+        x_coords.append(coords[0])
+        y_coords.append(coords[1])
+
+    fig = px.density_contour(
+        x=x_coords, y=y_coords, 
+        title=title, 
+        labels={'x': 'X Coordinates', 'y': 'Y Coordinates'},
+        histfunc="count", 
+    )
+    fig.update_traces(contours_coloring="fill", colorscale="Reds")
+    fig.update_yaxes(range=[4000, 0])
+    fig.update_xaxes(range=[0, 1920])
+    fig.update_layout(
+        height=600
+    )
+    fig.show()
+
+    if download_path:
+        fig.write_html(download_path)
+
+
+def compare_coordinates_distribution(coords1, coords2, title1, title2, download_path=None):
+    """Compare two distributions of the coordinates of the links between articles in the path"""
+    x_coords1, y_coords1 = zip(*coords1)
+    x_coords2, y_coords2 = zip(*coords2)
+
+    fig = make_subplots(rows=1, cols=2, subplot_titles=(title1, title2))
+
+    fig.add_trace(
+        go.Histogram2dContour(
+            x=x_coords1, y=y_coords1,
+            colorscale='Reds',
+            contours_coloring='fill',
+            showscale=False
+        ),
+        row=1, col=1
+    )
+
+    fig.add_trace(
+        go.Histogram2dContour(
+            x=x_coords2, y=y_coords2,
+            colorscale='Reds',
+            contours_coloring='fill',
+            showscale=False
+        ),
+        row=1, col=2
+    )
+
+    fig.update_yaxes(range=[4000, 0], row=1, col=1)
+    fig.update_xaxes(range=[0, 1920], row=1, col=1)
+    fig.update_yaxes(range=[4000, 0], row=1, col=2)
+    fig.update_xaxes(range=[0, 1920], row=1, col=2)
+
+    fig.update_layout(
+        height=600,
+        title_text="Distribution of links coordinates of the unfinished and finished paths",
+    )
+
+    fig.show()
+
+    if download_path:
+        fig.write_html(download_path)
+
+def plot_link_coordinates_variance_per_step(links_coords_finished, links_coords_unfinished, download_path=None):
+    """Plot the variance of the link coordinates in function of the step in path"""
+
+    steps, variance_x, variance_y = compute_coordinates_per_step(links_coords_finished, links_coords_unfinished)
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=steps, y=variance_x, mode='lines+markers', name='Variance along the horizontal axis'))
+    fig.add_trace(go.Scatter(x=steps, y=variance_y, mode='lines+markers', name='Variance along the vertical axis'))
+
+    fig.update_layout(
+        title='Variance of the link coordinates (relative to the article size) in function of the step in path',
+        xaxis_title='Step',
+        yaxis_title='Variance',
+        height=600,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.3,
+            xanchor="center",
+            x=0.5
+        )
+    )
+
+    fig.show()
+
+    if download_path:
+        fig.write_html(download_path)

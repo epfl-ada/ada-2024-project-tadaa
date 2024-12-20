@@ -40,7 +40,7 @@ def get_article_html_path(article_name):
     return os.path.abspath("data/wpcd/wp/{}/{}.htm".format(article_name[0].lower(), article_name))
 
 
-def get_path_links_coordinates(browser, articles, cache, normalized=True):
+def get_path_links_coordinates(browser, articles, cache1, cache2):
     """
     Get the coordinates of the links between articles in the path.
 
@@ -48,19 +48,22 @@ def get_path_links_coordinates(browser, articles, cache, normalized=True):
         browser: selenium webdriver used to simulate the browser
         articles: list of articles in the path
         cache: dictionary to store the coordinates of the links between articles
-        normalized: whether to normalize the coordinates or not
+        cache2: dictionary to store the coordinates of the links between articles divided by the page size
     
     Returns:
         A list of coordinates of the links between articles in the path
+        A list of coordinates of the links between articles in the path divided by the page size
     """
     path_links_coords = []
+    normalized_path_links_coords = []
     for i in range(len(articles) - 1):
         cur_article = articles[i]
         next_article = articles[i+1]
         if cur_article == "<":
             continue
-        if cur_article in cache and next_article in cache[cur_article]:
-            path_links_coords.append(cache[cur_article][next_article])
+        if cur_article in cache1 and next_article in cache1[cur_article]:
+            path_links_coords.append(cache1[cur_article][next_article])
+            normalized_path_links_coords.append(cache2[cur_article][next_article])
             print("Cache hit for {} -> {}".format(cur_article, next_article))
             continue
         
@@ -74,57 +77,27 @@ def get_path_links_coordinates(browser, articles, cache, normalized=True):
         links = browser.find_elements(By.XPATH, "//a[@href=\"{}\"]".format(next_url))
           
         links_coords = []
+        normalized_links_coords = []
         for link in links:
             x = link.location["x"]
             y = link.location["y"]
-            if normalized:
-                page_width = browser.execute_script("return document.body.scrollWidth")
-                page_height = browser.execute_script("return document.body.scrollHeight")
-
-                x /= page_width
-                y /= page_height
+            
+            page_width = browser.execute_script("return document.body.scrollWidth")
+            page_height = browser.execute_script("return document.body.scrollHeight")
             
             links_coords.append((x, y))
+            normalized_links_coords.append((x / page_width, y / page_height))
 
-        if cache.get(cur_article) is None:
-            cache[cur_article] = {}
-        cache[cur_article][next_article] = links_coords
+        if cache1.get(cur_article) is None:
+            cache1[cur_article] = {}
+            cache2[cur_article] = {}
+        cache1[cur_article][next_article] = links_coords
+        cache2[cur_article][next_article] = normalized_links_coords
 
         path_links_coords.append(links_coords)
+        normalized_path_links_coords.append(normalized_links_coords)
     
-    return path_links_coords
-
-def get_path_page_size(browser, articles, cache):
-    """
-    Get the size of the page of the articles in the path.
-
-    Args:
-        browser: selenium webdriver used to simulate the browser
-        articles: list of articles in the path
-        cache: dictionary to store the size of the page of the articles
-    
-    Returns:
-        A list of the size of the page of the articles in the path
-    """
-    path_page_size = []
-    for article in articles:
-        if article in cache:
-            path_page_size.append(cache[article])
-            print("Cache hit for {}".format(article))
-            continue
-        
-        local_html_file = get_article_html_path(article)
-
-        print("Opening file: ", local_html_file)
-        browser.get("file:///" + local_html_file)
-        
-        page_width = browser.execute_script("return document.body.scrollWidth")
-        page_height = browser.execute_script("return document.body.scrollHeight")
-
-        cache[article] = (page_width, page_height)
-        path_page_size.append((page_width, page_height))
-    
-    return path_page_size
+    return path_links_coords, normalized_path_links_coords
 
 
 if __name__ == "__main__":
@@ -142,14 +115,15 @@ if __name__ == "__main__":
     most_popular_pairs["shortest_path"] = most_popular_pairs.apply(lambda r: compute_shortest_path(r["source"], r["target"], graph), axis=1)
 
     # setup
-    cache = {}
+    cache1 = {}
+    cache2 = {}
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--window-size=1920,1080")
     browser = webdriver.Chrome(options=chrome_options)
 
     # optimal paths
-    most_popular_pairs["links_coords"] = most_popular_pairs["shortest_path"].apply(lambda p: get_path_links_coordinates(browser, p, cache))
+    most_popular_pairs[["links_coords", "normalized_links_coords"]] = pd.DataFrame(most_popular_pairs["shortest_path"].apply(lambda p: get_path_links_coordinates(browser, p, cache1, cache2)).tolist(), index=most_popular_pairs.index)
     most_popular_pairs.to_csv("data/links_coordinates_optimal.csv", index=False)
 
     # unfinished paths
@@ -157,8 +131,8 @@ if __name__ == "__main__":
     filtered_unfinished_paths = unfinished_paths[unfinished_paths.apply(lambda row: (row["source"], row["target"]) in popular_pairs_set, axis=1)]
     filtered_unfinished_paths = filtered_unfinished_paths.drop_duplicates(subset=["hashedIpAddress", "timestamp"])
 
-    filtered_unfinished_paths["links_coords"] = filtered_unfinished_paths["path"].apply(eval).apply(lambda p: get_path_links_coordinates(browser, p, cache))
-    filtered_unfinished_paths = filtered_unfinished_paths[["hashedIpAddress", "timestamp", "durationInSec", "play_duration", "clean_path", "source", "target", "links_coords"]]
+    filtered_unfinished_paths[["links_coords", "normalized_links_coords"]] = pd.DataFrame(filtered_unfinished_paths["clean_path"].apply(eval).apply(lambda p: get_path_links_coordinates(browser, p, cache1, cache2)).tolist(), index=filtered_unfinished_paths.index)
+    filtered_unfinished_paths = filtered_unfinished_paths[["hashedIpAddress", "timestamp", "durationInSec", "play_duration", "clean_path", "source", "target", "links_coords", "normalized_links_coords"]]
     filtered_unfinished_paths.to_csv("data/links_coordinates_unfinished.csv", index=False)
 
     # finished paths
@@ -166,8 +140,8 @@ if __name__ == "__main__":
     filtered_finished_paths = finished_paths[finished_paths.apply(lambda row: (row["source"], row["target"]) in popular_pairs_set, axis=1)]
     filtered_finished_paths = filtered_finished_paths.drop_duplicates(subset=["hashedIpAddress", "timestamp"])
 
-    filtered_finished_paths["links_coords"] = filtered_finished_paths["path"].apply(eval).apply(lambda p: get_path_links_coordinates(browser, p, cache))
-    filtered_finished_paths = filtered_finished_paths[["hashedIpAddress", "timestamp", "durationInSec", "clean_path", "source", "target", "links_coords"]]
+    filtered_finished_paths[["links_coords", "normalized_links_coords"]] = pd.DataFrame(filtered_finished_paths["clean_path"].apply(eval).apply(lambda p: get_path_links_coordinates(browser, p, cache1, cache2)).tolist(), index=filtered_finished_paths.index)
+    filtered_finished_paths = filtered_finished_paths[["hashedIpAddress", "timestamp", "durationInSec", "clean_path", "source", "target", "links_coords", "normalized_links_coords"]]
     filtered_finished_paths.to_csv("data/links_coordinates_finished.csv", index=False)
 
     browser.quit()
